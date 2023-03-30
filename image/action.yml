@@ -1,0 +1,80 @@
+name: 'Build Image'
+description: 'Build an image'
+author: 'GarnerCorp'
+branding:
+  icon: 'upload'
+  color: 'yellow'
+inputs:
+  container-registry:
+    description: "Container Registry"
+    default: "gcr.io"
+    required: false
+  container-project:
+    description: "Path within container registry for team"
+    required: true
+  platforms:
+    description: "The platforms for which to build the image"
+    default: "linux/amd64,linux/arm64"
+    required: false
+  working-directory:
+    description: "Directory containing Dockerfile"
+    default: "."
+    required: false
+  google-credentials-json:
+    description: "Google Service Account JSON file"
+    default: ""
+    required: false
+  google-cloud-sdk-version:
+    description: "Google Cloud SDK version"
+    default: ""
+    required: false
+  image-name:
+    description: "Name of OCI image"
+    required: false
+  image-tag:
+    description: "Tag of OCI image"
+    required: false
+  rc-tag:
+    description: "Tag used for release candidates"
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.container-project }}
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+        exit 1
+
+    - name: "Google Auth"
+      uses: "google-github-actions/auth@v1"
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        credentials_json: "${{ inputs.google-credentials-json }}"
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        version: ${{ inputs.google-cloud-sdk-version }}
+        project_id: ${{ inputs.container-project }}
+
+    - name: Configure GCloud and Docker
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      shell: bash
+      run: |
+        gcloud auth configure-docker
+
+    - name: Build and Push Image
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image-name || inputs.working-directory }}
+        TAG: "${{ inputs.image-tag ||github.event.pull_request.head.sha || github.sha }}"
+        RC: "${{ inputs.rc-tag || github.event.pull_request.head.sha || github.sha }}-rc"
+        REPOSITORY: "${{ inputs.container-registry }}/${{ inputs.container-project }}"
+        PLATFORMS: ${{ inputs.platforms }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY"

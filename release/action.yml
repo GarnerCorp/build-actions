@@ -1,0 +1,61 @@
+name: 'Test image'
+description: 'Trigger image tests'
+author: 'GarnerCorp'
+branding:
+  icon: 'upload-cloud'
+  color: 'orange'
+inputs:
+  repository:
+    description: Repository containing test information
+    required: true
+  ssh-key:
+    description: SSH key (with write permissions) to clone repository
+    required: true
+  working-directory:
+    description: Path within the repository managing tests
+    default: .
+    required: false
+  name:
+    description: Username to use for git commit
+    required: true
+  mail:
+    description: Email address to use for git commit
+    required: true
+  project-pretty:
+    description: Project name for commit message
+    required: false
+  default-branch:
+    description: Default branch
+    default: master
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.repository || !inputs.ssh-key || !inputs.name || !inputs.mail }}
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+        exit 1
+    - name: Prepare for E2E Deployment
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ inputs.repository }}
+        path: ${{ inputs.path }}
+        ssh-key: ${{ inputs.ssh-key }}
+    - name: Trigger E2E
+      shell: bash
+      env:
+        GIT_NAME: ${{ inputs.name }}
+        GIT_MAIL: ${{ inputs.mail }}
+        PROJECT_PRETTY: ${{ inputs.project-pretty }}
+        PR_REPO_URL: ${{ github.event.pull_request.head.repo.html_url }}
+        COMMIT_URL: ${{ github.event.push.head_commit.url }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        "$GITHUB_ACTION_PATH/commit-latest-versions.sh"

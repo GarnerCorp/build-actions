@@ -1,0 +1,193 @@
+name: 'Build Image w/ Yarn'
+description: 'Build an image using yarn'
+author: 'GarnerCorp'
+branding:
+  icon: 'aperture'
+  color: 'purple'
+inputs:
+  npm-registry:
+    description: "The npm registry from which to retrieve packages"
+    default: "https://registry.npmjs.org/"
+    required: false
+  npm-username:
+    description: "Username for the npm-registry"
+    required: false
+  npm-password:
+    description: "Password for the npm-registry"
+    required: false
+  npm-email:
+    description: "Email for the npm-registry (required yarn v1)"
+    required: false
+  node-version:
+    description: "Node version to use"
+    default: "16"
+    required: false
+  yarn-use-berry:
+    description: "Use yarn berry"
+    default: "true"
+    required: false
+  working-directory:
+    description: "Directory containing package.json"
+    default: "."
+    required: false
+  yarn-build-command:
+    description: "Command to build project"
+    default: "yarn build"
+    required: false
+  source-directory:
+    description: "Source directory within working directory (relative to working-directory)"
+    default: "src"
+    required: false
+  test-file-pattern:
+    description: "Array of globs for test files"
+    default: '["*.spec.js", "*.spec.ts"]'
+    required: false
+  yarn-test-command:
+    description: "Command to run tests"
+    default: "yarn test"
+    required: false
+  yarn-build-directory:
+    description: "Directory containing output from yarn build (relative to working-directory)"
+    default: "dist"
+    required: false
+  build-output-tarball:
+    description: "Output file path (relative to yarn-build-directory)"
+    default: "../dist.tar.gz"
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Node ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Use Yarn Berry
+      shell: bash
+      if: inputs.yarn-use-berry
+      run: yarn set version berry
+
+    - name: Get yarn cache directory path (yarn berry)
+      if: inputs.yarn-use-berry
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        dir="$(yarn config get cacheFolder)"
+        mkdir -p "$dir"
+        echo "CACHE_DIR_YARN=$dir" | tee -a "$GITHUB_ENV"
+
+    - name: Get yarn cache directory path (yarn v1)
+      if: ${{ !inputs.yarn-use-berry }}
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        dir="$(yarn cache dir)"
+        mkdir -p "$dir"
+        echo "CACHE_DIR_YARN=$dir" | tee -a "$GITHUB_ENV"
+
+    - name: Use Yarn Cache
+      uses: actions/cache@v3
+      id: yarn-cache
+      with:
+        path: ${{ env.CACHE_DIR_YARN }}
+        key: yarn-${{ runner.os }}-${{ inputs.working-directory }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, 'yarn.lock')) }}
+        restore-keys: yarn-${{ runner.os }}-${{ inputs.working-directory }}
+
+    - name: Set up yarn credentials
+      if: inputs.npm-username && inputs.npm-password && inputs.yarn-use-berry
+      shell: bash
+      env:
+        NPM_USER: ${{ inputs.npm-username }}
+        NPM_PASSWORD: ${{ inputs.npm-password }}
+        NPM_REGISTRY: ${{ inputs.npm-registry }}
+      run: |
+        perl -i -e 'next if /CACHE_DIR_YARN/;print ' "$GITHUB_ENV"
+        yarn_credentials=$(echo -n "$NPM_USER:$NPM_PASSWORD" | base64)
+        yarn config set npmAlwaysAuth true
+        yarn config set npmRegistryServer "$NPM_REGISTRY"
+        yarn config set npmAuthIdent "$yarn_credentials"
+
+    - name: Set up npm credentials
+      if: inputs.npm-username && inputs.npm-password && inputs.npm-email && !inputs.yarn-use-berry
+      # https://github.com/npm/cli/issues/2852
+      shell: bash
+      env:
+        NPM_USER: ${{ inputs.npm-username }}
+        NPM_PASSWORD: ${{ inputs.npm-password }}
+        NPM_REGISTRY: ${{ inputs.npm-registry }}
+        NPM_EMAIL: ${{ inputs.npm-email }}
+      run: |
+        npm_credentials=$(echo -n "$NPM_USER:$NPM_PASSWORD" | base64)
+
+        npm config set _auth "$npm_credentials"
+        npm config set email "$NPM_EMAIL"
+        npm config set registry "$NPM_REGISTRY"
+        npm config set always-auth true
+
+    - name: Install Dependencies
+      run: yarn install
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Build
+      run: ${{ inputs.yarn-build-command }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Look for tests
+      id: test-searcher
+      if: inputs.test-file-pattern && fromJSON(inputs.test-file-pattern)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        SOURCE_DIRECTORY: ${{ inputs.source-directory }}
+        PATTERNS: ${{ inputs.test-file-pattern }}
+      run: |
+        if find "$SOURCE_DIRECTORY" $(
+            echo "$PATTERNS" |
+
+            jq -r '. | map(. | tojson) | map(" -name " + .) | join(" -o")'
+        ) |
+          grep -q .
+
+        then
+          echo "has-tests=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Test
+      if: steps.test-searcher.outputs.has-tests
+      shell: bash
+      run: ${{ inputs.yarn-test-command }}
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: "Google Auth"
+      uses: "google-github-actions/auth@v1"
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        credentials_json: "${{ inputs.google-credentials-json }}"
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        version: ${{ inputs.google-cloud-sdk-version }}
+        project_id: ${{ inputs.container-project }}
+
+    - name: Configure GCloud and Docker
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      shell: bash
+      run: |
+        gcloud auth configure-docker
+
+    - name: Package
+      shell: bash
+      env:
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        BUILD_DIRECTORY: ${{ inputs.yarn-build-directory }}
+        TARBALL: ${{ inputs.build-output-tarball }}
+      run: tar czf "$TARBALL" *
+      working-directory: "${{ env.WORKING_DIRECTORY }}/${{ env.BUILD_DIRECTORY }}"

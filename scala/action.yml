@@ -1,0 +1,110 @@
+name: 'Build Image w/ SBT'
+description: 'Build an image using sbt'
+author: 'GarnerCorp'
+branding:
+  icon: 'globe'
+  color: 'red'
+inputs:
+  maven-registry:
+    description: "The maven registry from which to retrieve packages"
+    default: "https://repo.maven.apache.org/maven2/"
+    required: false
+  maven-username:
+    description: "Username for the npm-registry"
+    required: false
+  maven-password:
+    description: "Password for the npm-registry"
+    required: false
+  java-distribution:
+    description: "Java distribution"
+    default: 'temurin'
+    required: false
+  java-version:
+    description: "Java version to use"
+    default: "11"
+    required: false
+  prometheus-url:
+    description: "Prometheus JMX Jar URL (maven credentials will be used if from the same repository)"
+    required: false
+  working-directory:
+    description: "Directory containing build.sbt"
+    default: "."
+    required: false
+  cache-sbt-targets:
+    description: "Glob for sbt targets"
+    default: "*/target"
+    required: false
+  source-directory:
+    description: "Source directory within working directory"
+    default: "src"
+    required: false
+  copy-prometheus-to:
+    description: "Directories that need a prometheus jar"
+    default: ""
+    required: false
+  jars-to-simplify:
+    description: "Projects whose jar files include versions that should be stripped"
+    default: ""
+    required: false
+  extra-sbt-args:
+    description: "Extra arguments to sbt"
+    default: ""
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up JDK ${{ inputs.java-version}}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java-version}}
+        distribution: ${{ inputs.java-distribution}}
+        cache: 'sbt'
+
+    - name: Download jmx_prometheus_javaagent
+      if: inputs.prometheus-url
+      env:
+        PROMETHEUS_URL: ${{ inputs.prometheus-url }}
+        MAVEN_USERNAME: ${{ inputs.maven-username }}
+        MAVEN_PASSWORD: ${{ inputs.maven-password }}
+        MAVEN_REGISTRY: ${{ inputs.maven-registry }}
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        if [ -n "$MAVEN_USERNAME" ] && [ -n "$MAVEN_PASSWORD" ]; then
+          case "$PROMETHEUS_URL" in
+          *"$MAVEN_REGISTRY"*)
+            CREDENTIALS="-u '$MAVEN_USERNAME:$MAVEN_PASSWORD'"
+            ;;
+          esac
+        fi
+
+        curl -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" -O "$PROMETHEUS_URL"
+
+    - name: Cache SBT Project
+      uses: actions/cache@v3
+      with:
+        key: sbt-project-${{ inputs.working-directory }}-${{ github.sha }}
+        restore-keys: sbt-project-${{ inputs.working-directory }}
+        path: ${{ inputs.working-directory }}/project/target
+
+    - name: Cache SBT Jobs
+      uses: actions/cache@v3
+      with:
+        key: sbt-target-${{ inputs.working-directory }}-${{ github.sha }}
+        restore-keys: sbt-jobs-${{ inputs.working-directory }}
+        path: ${{ inputs.working-directory }}/${{ inputs.cache-sbt-targets }}
+
+    - name: Run build
+      shell: bash
+      run: $GITHUB_ACTION_PATH/build-scala-ci.sh ${{ github.event.pull_request.number || github.ref_name }} build
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        MAVEN_USERNAME: ${{ inputs.maven-username }}
+        MAVEN_PASSWORD: ${{ inputs.maven-password }}
+        EXTRA_SBT_ARGS: ${{ inputs.extra-sbt-args }}
+        COPY_PROMETHEUS_TO: ${{ inputs.copy-prometheus-to }}
+        SIMPLIFY_PROJECT_NAMES: ${{ inputs.jars-to-simplify }}
