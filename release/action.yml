@@ -28,6 +28,9 @@ inputs:
     description: Default branch
     default: master
     required: false
+env:
+  BRANCH: ${{ github.head_ref || github.ref_name }}
+  DEFAULT_BRANCH: ${{ inputs.default-branch }}
 
 runs:
   using: 'composite'
@@ -39,6 +42,7 @@ runs:
         "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
         exit 1
     - name: Prepare for E2E Deployment
+      if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
       uses: actions/checkout@v3
       with:
         repository: ${{ inputs.repository }}
@@ -53,10 +57,8 @@ runs:
         PROJECT_PRETTY: ${{ inputs.project-pretty }}
         PR_REPO_URL: ${{ github.event.pull_request.head.repo.html_url }}
         COMMIT_URL: ${{ github.event.push.head_commit.url }}
-        BRANCH: ${{ github.head_ref || github.ref_name }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
-        DEFAULT_BRANCH: ${{ inputs.default-branch }}
       working-directory: ${{ inputs.working-directory }}
       run: |
         "$GITHUB_ACTION_PATH/commit-latest-versions.sh"
