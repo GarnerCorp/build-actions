@@ -13,6 +13,7 @@ if [ -z "$BRANCH" ] || [ -z "$HEAD_SHA" ]; then
 fi
 
 if [ "$BRANCH" != "$DEFAULT_BRANCH" ] && [ -z "$PR_NUMBER" ]; then
+  echo "::notice ::Your run was to a non-default branch ($BRANCH != $DEFAULT_BRANCH) and was not part of a pull request, exiting..."
   exit 0
 fi
 
