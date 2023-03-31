@@ -46,6 +46,7 @@ runs:
         ssh-key: ${{ inputs.ssh-key }}
     - name: Trigger E2E
       shell: bash
+      if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
       env:
         GIT_NAME: ${{ inputs.name }}
         GIT_MAIL: ${{ inputs.mail }}
