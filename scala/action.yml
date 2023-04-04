@@ -121,8 +121,27 @@ runs:
         distribution: ${{ inputs.java-distribution }}
         cache: 'sbt'
 
-    - name: Download jmx_prometheus_javaagent
+    - name: Find Prometheus Agent
       if: inputs.prometheus-url
+      id: find-prometheus-agent
+      shell: bash
+      env:
+        PROMETHEUS_URL: ${{ inputs.prometheus-url }}
+      run: |
+        prometheus_agent=$(basename "$PROMETHEUS_URL")
+        echo "prometheus_agent=$prometheus_agent" >> $GITHUB_OUTPUT
+
+    - name: Cache Prometheus Agent
+      if: inputs.prometheus-url
+      id: prometheus-agent-cache
+      uses: actions/cache@v3
+      with:
+        key: prometheus-agent-${{ steps.find-prometheus-agent.outputs.prometheus_agent }}
+        restore-keys: prometheus-agent
+        path: ${{ inputs.working-directory }}/${{ steps.find-prometheus-agent.outputs.prometheus_agent }}
+
+    - name: Download jmx_prometheus_javaagent
+      if: inputs.prometheus-url && steps.prometheus-agent-cache.outputs.cache-hit != 'true'
       env:
         PROMETHEUS_URL: ${{ inputs.prometheus-url }}
         MAVEN_USERNAME: ${{ inputs.maven-username }}
