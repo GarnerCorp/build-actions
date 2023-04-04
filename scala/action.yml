@@ -94,7 +94,7 @@ runs:
     - name: Cache SBT Jobs
       uses: actions/cache@v3
       with:
-        key: sbt-target-${{ inputs.working-directory }}-${{ github.sha }}
+        key: sbt-jobs-${{ inputs.working-directory }}-${{ github.sha }}
         restore-keys: sbt-jobs-${{ inputs.working-directory }}
         path: ${{ inputs.working-directory }}/${{ inputs.cache-sbt-targets }}
 
