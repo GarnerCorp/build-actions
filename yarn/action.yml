@@ -147,13 +147,13 @@ runs:
         SOURCE_DIRECTORY: ${{ inputs.source-directory }}
         PATTERNS: ${{ inputs.test-file-pattern }}
       run: |
-        if find "$SOURCE_DIRECTORY" $(
+        TEST_FLAGS=$(
             echo "$PATTERNS" |
 
             jq -r '. | map(. | tojson) | map(" -name " + .) | join(" -o")'
-        ) |
-          grep -q .
+        )
 
+        if echo "$TEST_FLAGS" | xargs find "$SOURCE_DIRECTORY"
         then
           echo "has-tests=1" >> "$GITHUB_OUTPUT"
         fi
