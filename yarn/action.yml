@@ -47,12 +47,24 @@ inputs:
     default: "yarn test"
     required: false
   yarn-build-directory:
-    description: "Directory containing output from yarn build (relative to working-directory)"
+    description: "Directory containing output from yarn-build-command (relative to working-directory)"
     default: "dist"
     required: false
   build-output-tarball:
     description: "Output file path (relative to yarn-build-directory)"
     default: "../dist.tar.gz"
+    required: false
+  publish-to-registry:
+    description: "Optionally publish to npm-registry"
+    default: "false"
+    required: false
+  publishing-branch:
+    description: "Branch to publish registry off of"
+    default: "master"
+    required: false
+  publishing-directory:
+    description: "Directory to publish to npm-registry"
+    default: "dist"
     required: false
 
 runs:
@@ -191,3 +203,24 @@ runs:
         TARBALL: ${{ inputs.build-output-tarball }}
       run: tar czf "$TARBALL" *
       working-directory: "${{ env.WORKING_DIRECTORY }}/${{ env.BUILD_DIRECTORY }}"
+
+    - name: Publish to NPM registry
+      if: inputs.publish-to-registry
+      shell: bash
+      env:
+        BRANCH_NAME: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        COMMIT_SHA: "${{ github.event.pull_request.head.sha || github.sha }}"
+        PUBLISH_BRANCH: ${{ inputs.publishing-branch }}
+        PUBLISHING_DIRECTORY: ${{ inputs.publishing-directory }}
+
+      run: |
+        version="$(jq -r < package.json '.version')"
+        if [ "$BRANCH_NAME" = "$PUBLISH_BRANCH" ]; then
+            if [ -e "$PUBLISHING_DIRECTORY"/package.json ]; then
+                cd $PUBLISHING_DIRECTORY
+                cp ../yarn.lock .
+            fi
+            jq '.version="'"$version"'"' package.json > new_package.json
+            mv new_package.json package.json
+            yarn npm publish
+        fi
