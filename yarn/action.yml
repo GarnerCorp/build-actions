@@ -205,7 +205,7 @@ runs:
       working-directory: "${{ env.WORKING_DIRECTORY }}/${{ env.BUILD_DIRECTORY }}"
 
     - name: Publish to NPM registry
-      if: inputs.publish-to-registry
+      if: inputs.publish-to-registry == 'true'
       shell: bash
       env:
         BRANCH_NAME: ${{ github.event.pull_request.head.ref || github.ref_name }}
