@@ -108,9 +108,9 @@ runs:
       shell: bash
       run: |
         if [ -n $BUILD_SCRIPT ]; then 
-          exec $BUILD_SCRIPT $BUILD_SCRIPT_ARGS $EXTRA_SBT_ARGS
+          $BUILD_SCRIPT "$BUILD_SCRIPT_ARGS" "$EXTRA_SBT_ARGS"
         else
-          $GITHUB_ACTION_PATH/build-scala-ci.sh
+          $GITHUB_ACTION_PATH/build-scala-ci.sh $EXTRA_SBT_ARGS
         fi
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -120,4 +120,4 @@ runs:
         COPY_PROMETHEUS_TO: ${{ inputs.copy-prometheus-to }}
         SIMPLIFY_PROJECT_NAMES: ${{ inputs.jars-to-simplify }}
         BUILD_SCRIPT: ${{ inputs.build-script }}
-        BUILD_ARGS: ${{ inputs.build-script-args }}
+        BUILD_SCRIPT_ARGS: ${{ inputs.build-script-args }}
