@@ -106,7 +106,12 @@ runs:
 
     - name: Run build
       shell: bash
-      run: ${{ inputs.build-script || $GITHUB_ACTION_PATH/build-scala-ci.sh }} ${{ inputs.build-script-args }}
+      run: |
+        if [ -n $BUILD_SCRIPT ]; then 
+          exec $BUILD_SCRIPT $BUILD_SCRIPT_ARGS $EXTRA_SBT_ARGS
+        else
+          $GITHUB_ACTION_PATH/build-scala-ci.sh
+        fi
       working-directory: ${{ inputs.working-directory }}
       env:
         MAVEN_USERNAME: ${{ inputs.maven-username }}
@@ -114,3 +119,5 @@ runs:
         EXTRA_SBT_ARGS: ${{ inputs.extra-sbt-args }}
         COPY_PROMETHEUS_TO: ${{ inputs.copy-prometheus-to }}
         SIMPLIFY_PROJECT_NAMES: ${{ inputs.jars-to-simplify }}
+        BUILD_SCRIPT: ${{ inputs.build-script }}
+        BUILD_ARGS: ${{ inputs.build-script-args }}
