@@ -48,6 +48,12 @@ runs:
         repository: ${{ inputs.repository }}
         path: ${{ inputs.path }}
         ssh-key: ${{ inputs.ssh-key }}
+    - name: Ensure working directory
+      shell: bash
+      env:
+        working_directory: ${{ inputs.working-directory }}
+      run: |
+        mkdir -p "$working_directory"
     - name: Trigger E2E
       shell: bash
       if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
