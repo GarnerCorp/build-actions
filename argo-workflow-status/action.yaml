@@ -1,0 +1,14 @@
+name: 'Integration Testing'
+description: 'Connect to the k8s cluster and determine the workflow status'
+inputs:
+  pull-request:
+    required: true
+    description: 'The pull request number'
+  commit-sha:
+    required: true
+    description: 'The commit sha of the version to be tested'
+runs:
+  using: 'composite'
+  steps:
+    - run: ${{ github.action_path }}/watch-status.sh ${{ inputs.commit-sha }} ${{ inputs.pull-request }}
+      shell: bash

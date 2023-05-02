@@ -1,5 +1,6 @@
-GITHUB
+github
 javaagent
+kubectl
 multiarch
 OPTARG
 sbt
