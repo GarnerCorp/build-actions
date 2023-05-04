@@ -80,11 +80,11 @@ runs:
 
     - name: Use Yarn Berry
       shell: bash
-      if: inputs.yarn-use-berry
+      if: inputs.yarn-use-berry == 'true'
       run: yarn set version berry
 
     - name: Get yarn cache directory path (yarn berry)
-      if: inputs.yarn-use-berry
+      if: inputs.yarn-use-berry == 'true'
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
@@ -93,7 +93,7 @@ runs:
         echo "CACHE_DIR_YARN=$dir" | tee -a "$GITHUB_ENV"
 
     - name: Get yarn cache directory path (yarn v1)
-      if: ${{ !inputs.yarn-use-berry }}
+      if: inputs.yarn-use-berry != 'true'
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
@@ -110,7 +110,7 @@ runs:
         restore-keys: yarn-${{ runner.os }}-${{ inputs.working-directory }}
 
     - name: Set up yarn credentials
-      if: inputs.npm-username && inputs.npm-password && inputs.yarn-use-berry
+      if: inputs.npm-username && inputs.npm-password && inputs.yarn-use-berry == 'true'
       shell: bash
       env:
         NPM_USER: ${{ inputs.npm-username }}
@@ -124,7 +124,7 @@ runs:
         yarn config set npmAuthIdent "$yarn_credentials"
 
     - name: Set up npm credentials
-      if: inputs.npm-username && inputs.npm-password && inputs.npm-email && !inputs.yarn-use-berry
+      if: inputs.npm-username && inputs.npm-password && inputs.npm-email && inputs.yarn-use-berry != 'true'
       # https://github.com/npm/cli/issues/2852
       shell: bash
       env:
