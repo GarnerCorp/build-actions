@@ -35,9 +35,9 @@ jobs:
           extra_dictionary_limit: 10
           extra_dictionaries: |
             cspell:software-terms/src/software-terms.txt
-            cspell:bash/bash-words.txt
             cspell:docker/src/docker-words.txt
             cspell:filetypes/filetypes.txt
+            cspell:shell/dict/shell-all-words.txt
 
   comment:
     name: Report
