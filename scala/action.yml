@@ -56,12 +56,40 @@ inputs:
   build-script-args:
     description: "Required args for build-script"
     required: false
+  google-credentials-json:
+    description: "Google Service Account JSON file"
+    required: false
+  google-cloud-sdk-version:
+    description: "Google Cloud SDK version"
+    required: false
+  container-project:
+    description: "Path within container registry for team"
+    required: false
 
 runs:
   using: 'composite'
   steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: "Google Auth"
+      uses: "google-github-actions/auth@v1"
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        credentials_json: "${{ inputs.google-credentials-json }}"
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      with:
+        version: ${{ inputs.google-cloud-sdk-version }}
+        project_id: ${{ inputs.container-project }}
+
+    - name: Configure GCloud and Docker
+      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      shell: bash
+      run: |
+        gcloud auth configure-docker
 
     - name: Set up JDK ${{ inputs.java-version}}
       uses: actions/setup-java@v3
