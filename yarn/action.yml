@@ -81,7 +81,11 @@ runs:
     - name: Use Yarn Berry
       shell: bash
       if: inputs.yarn-use-berry == 'true'
-      run: yarn set version berry
+      env:
+        THIS_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        echo "::add-matcher::${THIS_ACTION_PATH}/reporter.json"
+        yarn set version berry
 
     - name: Get yarn cache directory path (yarn berry)
       if: inputs.yarn-use-berry == 'true'
