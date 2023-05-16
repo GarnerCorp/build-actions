@@ -10,5 +10,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - run: ${{ github.action_path }}/watch-status.sh ${{ inputs.commit-sha }} ${{ inputs.pull-request }}
+    - name: Watch Status
+      run: ${{ github.action_path }}/watch-status.sh ${{ inputs.commit-sha }} ${{ inputs.pull-request }}
       shell: bash
