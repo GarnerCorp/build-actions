@@ -1,0 +1,58 @@
+name: 'Scoverage Report'
+description: 'Generate Aggregate Scoverage Report'
+inputs:
+  working-directory:
+    description: "Directory containing Scala projects with scoverage data to aggregate"
+    default: .
+    required: false
+  java-distribution:
+    description: "Java distribution"
+    default: 'temurin'
+    required: false
+  java-version:
+    description: "Java version to use"
+    default: "11"
+    required: false
+  artifact:
+    description: "Name for the uploaded artifact"
+    default: "scoverage"
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Stash coverage
+      run: |
+        zip -r /tmp/coverage.zip .
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        path: ${{ inputs.working-directory }}
+
+    - name: Stub sbt environment
+      run: |
+        unzip /tmp/coverage.zip
+        ${{ github.action_path }}/synthesize-build-sbt-for-coverage-aggregation.pl
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+        cache: 'sbt'
+
+    - name: Aggregate scoverage
+      run: sbt coverageAggregate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Upload coverage
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ inputs.working-directory }}/target/scala-*/*coverage-report/**

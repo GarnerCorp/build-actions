@@ -8,6 +8,7 @@ npmjs
 OPTARG
 sbt
 scalafmt
+scoverage
 tarball
 temurin
 tojson
