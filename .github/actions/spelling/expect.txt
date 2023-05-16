@@ -1,8 +1,15 @@
-github
+amd
+garnercorp
+gcloud
 javaagent
-kubectl
+JDK
 multiarch
+npmjs
 OPTARG
 sbt
+scalafmt
+tarball
+temurin
+tojson
 usr
 workflows

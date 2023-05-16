@@ -114,7 +114,8 @@ themes\.googleusercontent\.com/static/fonts/[^/\s"]+/v\d+/[^.]+.
 # GitHub SHAs (api)
 \bapi.github\.com/repos(?:/[^/\s"]+){3}/[0-9a-f]+\b
 # GitHub SHAs (markdown)
-(?:\[`?[0-9a-f]+`?\]\(https:/|)/(?:www\.|)github\.com(?:/[^/\s"]+){2,}(?:/[^/\s")]+)(?:[0-9a-f]+(?:[-0-9a-zA-Z/#.]*|)\b|)
+#(?:\[`?[0-9a-f]+`?\]\(https:/|)/(?:www\.|)github\.com(?:/[^/\s"]+){2,}(?:/[^/\s")]+)(?:[0-9a-f]+(?:[-0-9a-zA-Z/#.]*|)\b|)
+
 # GitHub SHAs
 \bgithub\.com(?:/[^/\s"]+){2}[@#][0-9a-f]+\b
 # GitHub wiki
