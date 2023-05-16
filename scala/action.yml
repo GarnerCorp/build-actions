@@ -91,11 +91,11 @@ runs:
       run: |
         gcloud auth configure-docker
 
-    - name: Set up JDK ${{ inputs.java-version}}
+    - name: Set up JDK ${{ inputs.java-version }}
       uses: actions/setup-java@v3
       with:
-        java-version: ${{ inputs.java-version}}
-        distribution: ${{ inputs.java-distribution}}
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
         cache: 'sbt'
 
     - name: Download jmx_prometheus_javaagent
@@ -135,7 +135,7 @@ runs:
     - name: Run build
       shell: bash
       run: |
-        if [ -n "$BUILD_SCRIPT" ]; then 
+        if [ -n "$BUILD_SCRIPT" ]; then
           $BUILD_SCRIPT "$BUILD_SCRIPT_ARGS" "$EXTRA_SBT_ARGS"
         else
           $GITHUB_ACTION_PATH/build-scala-ci.sh
