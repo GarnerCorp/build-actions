@@ -71,7 +71,7 @@ runs:
       shell: bash
       env:
         IMAGE: ${{ inputs.image-name || inputs.working-directory }}
-        TAG: "${{ inputs.image-tag ||github.event.pull_request.head.sha || github.sha }}"
+        TAG: "${{ inputs.image-tag || github.event.pull_request.head.sha || github.sha }}"
         RC: "${{ inputs.rc-tag || github.event.pull_request.head.sha || github.sha }}-rc"
         REPOSITORY: "${{ inputs.container-registry }}/${{ inputs.container-project }}"
         PLATFORMS: ${{ inputs.platforms }}
