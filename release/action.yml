@@ -46,7 +46,6 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: ${{ inputs.repository }}
-        path: ${{ inputs.working-directory }}
         ssh-key: ${{ inputs.ssh-key }}
     - name: Ensure working directory
       shell: bash
