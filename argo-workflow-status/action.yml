@@ -4,12 +4,35 @@ inputs:
   pull-request:
     required: true
     description: 'The pull request number'
+  pod-label-name:
+    required: false
+    default: pod_function
+    description: 'Pod label selector'
+  pod-label-value:
+    required: false
+    default: e2e-tests
+    description: 'Value for pod label selector'
   commit-sha:
     required: true
     description: 'The commit sha of the version to be tested'
+  capture-log:
+    required: false
+    default: ""
+    description: 'Store log output to a file'
+
+outputs:
+  log:
+    description: "File containing log from pod"
+    value: ${{ steps.watch.outputs.log }}
+
 runs:
   using: 'composite'
   steps:
     - name: Watch Status
-      run: ${{ github.action_path }}/watch-status.sh ${{ inputs.commit-sha }} ${{ inputs.pull-request }}
+      id: watch
+      run: '"${{ github.action_path }}/watch-status.sh" "${{ inputs.commit-sha }}" ${{ inputs.pull-request }}'
       shell: bash
+      env:
+        CAPTURE_LOG: ${{ inputs.capture-log }}
+        POD_LABEL_NAME: ${{ inputs.pod-label-name }}
+        POD_LABEL_VALUE: ${{ inputs.pod-label-value }}

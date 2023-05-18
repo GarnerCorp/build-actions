@@ -37,19 +37,27 @@ fi
 
 while true; do
   e2e_pod=$(
-    kubectl get pods -n e2e-tests -l pod_function=e2e-tests --sort-by=.status.startTime --no-headers |
+    kubectl get pods -n e2e-tests -l "$POD_LABEL_NAME=$POD_LABEL_VALUE" --sort-by=.status.startTime --no-headers |
     perl -ne 'next unless /$ENV{workflow_name}/; s/^\s*(\S+).*/$1/; print;' |
     tail -n 1
   )
   if [ -z "$e2e_pod" ]; then
-    echo "Unable to find the e2e-test pod for $workflow_name"
+    echo "Unable to find the $POD_LABEL_VALUE pod for $workflow_name"
     sleep 5
   else
     break
   fi
 done
 
-echo "Showing log for pod: $e2e_pod"
-kubectl -n e2e-tests logs "$e2e_pod" -c main
+if [ -z "$CAPTURE_LOG" ]; then
+  echo "Showing log for pod: $e2e_pod"
+  log_file=/dev/stdout
+else
+  log_file=$(mktemp)
+  echo "log=$log_file" >> "$GITHUB_OUTPUT"
+fi
 
-exit 1
+kubectl -n e2e-tests logs "$e2e_pod" -c main >> "$log_file"
+if [ -z "$CAPTURE_LOG" ]; then
+  exit 1
+fi

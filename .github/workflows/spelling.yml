@@ -40,6 +40,7 @@ jobs:
             cspell:shell/dict/shell-all-words.txt
             cspell:npm/dict/npm.txt
             cspell:k8s/dict/k8s.txt
+            cspell:python/src/python/python-lib.txt
 
   comment:
     name: Report
