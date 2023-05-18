@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 BUILD_DIRECTORY="."
+DOCKERFILE="Dockerfile"
 
 usage() {
-  echo "Usage: $0 -r repository -i image_name [-t tag] [-d build_directory] [-p platform1,platform2...]"
+  echo "Usage: $0 -r repository -i image_name [-t tag] [-d build_directory] [-f dockerfile] [-p platform1,platform2...]"
   exit 1
 }
 
@@ -13,6 +14,7 @@ while getopts r:i:t:d:p:e: opt; do
   i)    IMAGE="$OPTARG";;
   t)    TAG="$OPTARG";;
   d)    BUILD_DIRECTORY="$OPTARG";;
+  f)    DOCKERFILE="$OPTARG";;
   p)    PLATFORMS="$OPTARG";;
   e)    RC="$OPTARG";;
   [?])  usage;;
@@ -48,4 +50,4 @@ if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
 fi
 
-docker buildx build $PLATFORM_ARGS $BUILD_DIRECTORY -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/Dockerfile --push
+docker buildx build $PLATFORM_ARGS $BUILD_DIRECTORY -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push

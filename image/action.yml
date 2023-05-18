@@ -20,6 +20,10 @@ inputs:
     description: "Directory containing Dockerfile"
     default: "."
     required: false
+  dockerfile:
+    description: "Name of Dockerfile"
+    default: "Dockerfile"
+    required: false
   google-credentials-json:
     description: "Google Service Account JSON file"
     default: ""
@@ -76,5 +80,6 @@ runs:
         REPOSITORY: "${{ inputs.container-registry }}/${{ inputs.container-project }}"
         PLATFORMS: ${{ inputs.platforms }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
       run: |
-        "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY"
+        "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE"
