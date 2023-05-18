@@ -8,7 +8,7 @@ usage() {
   exit 1
 }
 
-while getopts r:i:t:d:p:e: opt; do
+while getopts r:i:t:d:f:p:e: opt; do
   case "$opt" in
   r)    REPOSITORY="$OPTARG";;
   i)    IMAGE="$OPTARG";;
