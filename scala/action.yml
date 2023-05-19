@@ -73,7 +73,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout
-      if: ${{ inputs.skip-checkout }}
+      if: ${{ ! inputs.skip-checkout }}
       uses: actions/checkout@v3
 
     - name: "Google Auth"
