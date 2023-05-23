@@ -8,7 +8,7 @@ if [ -z "$git_sha" ]; then
 fi
 
 if [ -z "$pull_request" ]; then
-  pull_request="master"
+  pull_request="test"
 fi
 
 export workflow_name="${pull_request}-${git_sha}"
