@@ -41,6 +41,9 @@ inputs:
   rc-tag:
     description: "Tag used for release candidates"
     required: false
+  nexus_password:
+    description: "The Nexus Password"
+    required: false
 
 runs:
   using: 'composite'
@@ -81,5 +84,7 @@ runs:
         PLATFORMS: ${{ inputs.platforms }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
         DOCKERFILE: ${{ inputs.dockerfile }}
+        NEXUS_USER: "jenkins"
+        NEXUS_PASSWORD: ${{ inputs.nexus_password }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE"

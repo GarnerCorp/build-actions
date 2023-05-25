@@ -2,6 +2,7 @@
 
 BUILD_DIRECTORY="."
 DOCKERFILE="Dockerfile"
+env
 
 usage() {
   echo "Usage: $0 -r repository -i image_name [-t tag] [-d build_directory] [-f dockerfile] [-p platform1,platform2...]"
@@ -39,6 +40,7 @@ PUSH_CONTEXT=${REPOSITORY}/${IMAGE}:${RC:-${TAG}${BRANCH}}
 
 docker context create multiarch 2> /dev/null || true
 
+
 if [ "$(uname)" = "Linux" ]; then
   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 fi
@@ -50,4 +52,12 @@ if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
 fi
 
-docker buildx build $PLATFORM_ARGS $BUILD_DIRECTORY -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push
+if [ -n "$NEXUS_USER" ]; then
+  BUILD_USER_ARGS="--build-arg $NEXUS_USER"
+fi
+
+if [ -n  "$NEXUS_PASSWORD" ]; then
+  BUILD_PASS_ARGS="--build-arg $NEXUS_PASSWORD"
+fi
+
+docker buildx build $PLATFORM_ARGS $BUILD_DIRECTORY -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE $BUILD_USER_ARGS $BUILD_PASS_ARGS --push
