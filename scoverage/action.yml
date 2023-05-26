@@ -51,6 +51,12 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
 
+    - name: Extract coverage summary
+      run: |
+        perl -ne 'if(!$overview) { if(/<div class="overview">/){$overview = 1};next};print;last if m{</table>}' target/scala-*/scoverage-report/overview.html >> "$GITHUB_STEP_SUMMARY"
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
     - name: Upload coverage
       uses: actions/upload-artifact@v3
       with:
