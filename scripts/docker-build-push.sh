@@ -52,12 +52,4 @@ if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
 fi
 
-if [ -n "$NEXUS_USER" ]; then
-  BUILD_USER_ARGS="--build-arg $NEXUS_USER"
-fi
-
-if [ -n  "$NEXUS_PASSWORD" ]; then
-  BUILD_PASS_ARGS="--build-arg $NEXUS_PASSWORD"
-fi
-
-docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE $BUILD_USER_ARGS $BUILD_PASS_ARGS --push
+docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push

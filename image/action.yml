@@ -41,12 +41,6 @@ inputs:
   rc-tag:
     description: "Tag used for release candidates"
     required: false
-  nexus-username:
-    description: "The Nexus Username"
-    required: false
-  nexus-password:
-    description: "The Nexus Password"
-    required: false
   build-context:
     description: "The context for the docker"
     required: false
@@ -90,8 +84,6 @@ runs:
         PLATFORMS: ${{ inputs.platforms }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
         DOCKERFILE: ${{ inputs.dockerfile }}
-        NEXUS_USER: ${{ inputs.nexus-username }}
-        NEXUS_PASSWORD: ${{ inputs.nexus-password }}
         BUILD_CONTEXT: ${{ inputs.build-context || inputs.working-directory }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
