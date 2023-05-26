@@ -4,7 +4,7 @@ BUILD_DIRECTORY="."
 DOCKERFILE="Dockerfile"
 
 usage() {
-  echo "Usage: $0 -r repository -i image_name [-t tag] [-e rc] [-p platform1,platform2...] [-d build_directory] [-f dockerfile] [-c build_context] [-nu nexus_username] [-np nexus_password]"
+  echo "Usage: $0 -r repository -i image_name [-t tag] [-e rc] [-p platform1,platform2...] [-d build_directory] [-f dockerfile] [-c build_context]"
   exit 1
 }
 
@@ -18,8 +18,6 @@ while getopts r:i:t:d:f:p:e:c:nu:np: opt; do
   p)    PLATFORMS="$OPTARG";;
   e)    RC="$OPTARG";;
   c)    BUILD_CONTEXT="$OPTARG";;
-  nu)   NEXUS_USER="$OPTARG";;
-  np)   NEXUS_PASSWORD="$OPTARG";;
   [?])  usage;;
   esac
 done
@@ -55,11 +53,11 @@ if [ -n "$PLATFORMS" ]; then
 fi
 
 if [ -n "$NEXUS_USER" ]; then
-  BUILD_USER_ARGS="--build-arg NEXUS_USER=$NEXUS_USER"
+  BUILD_USER_ARGS="--build-arg $NEXUS_USER"
 fi
 
 if [ -n  "$NEXUS_PASSWORD" ]; then
-  BUILD_PASS_ARGS="--build-arg NEXUS_PASSWORD=$NEXUS_PASSWORD"
+  BUILD_PASS_ARGS="--build-arg $NEXUS_PASSWORD"
 fi
 
 docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE $BUILD_USER_ARGS $BUILD_PASS_ARGS --push
