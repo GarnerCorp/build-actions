@@ -4,11 +4,11 @@ BUILD_DIRECTORY="."
 DOCKERFILE="Dockerfile"
 
 usage() {
-  echo "Usage: $0 -r repository -i image_name [-t tag] [-d build_directory] [-f dockerfile] [-p platform1,platform2...]"
+  echo "Usage: $0 -r repository -i image_name [-t tag] [-e rc] [-p platform1,platform2...] [-d build_directory] [-f dockerfile] [-c build_context] [-nu nexus_username] [-np nexus_password]"
   exit 1
 }
 
-while getopts r:i:t:d:f:p:e:c: opt; do
+while getopts r:i:t:d:f:p:e:c:nu:np: opt; do
   case "$opt" in
   r)    REPOSITORY="$OPTARG";;
   i)    IMAGE="$OPTARG";;
@@ -18,6 +18,8 @@ while getopts r:i:t:d:f:p:e:c: opt; do
   p)    PLATFORMS="$OPTARG";;
   e)    RC="$OPTARG";;
   c)    BUILD_CONTEXT="$OPTARG";;
+  nu)   NEXUS_USER="$OPTARG";;
+  np)   NEXUS_PASSWORD="$OPTARG";;
   [?])  usage;;
   esac
 done

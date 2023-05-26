@@ -92,6 +92,6 @@ runs:
         DOCKERFILE: ${{ inputs.dockerfile }}
         NEXUS_USER: ${{ inputs.nexus-username }}
         NEXUS_PASSWORD: ${{ inputs.nexus-password }}
-        BUILD_CONTEXT: ${{ inputs.build-context || inputs.working-directory}}
+        BUILD_CONTEXT: ${{ inputs.build-context || inputs.working-directory }}
       run: |
-        "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
+        "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT" -nu "$NEXUS_USER" -np "$NEXUS_PASSWORD"
