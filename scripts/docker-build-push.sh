@@ -2,14 +2,13 @@
 
 BUILD_DIRECTORY="."
 DOCKERFILE="Dockerfile"
-env
 
 usage() {
   echo "Usage: $0 -r repository -i image_name [-t tag] [-d build_directory] [-f dockerfile] [-p platform1,platform2...]"
   exit 1
 }
 
-while getopts r:i:t:d:f:p:e: opt; do
+while getopts r:i:t:d:f:p:e:c: opt; do
   case "$opt" in
   r)    REPOSITORY="$OPTARG";;
   i)    IMAGE="$OPTARG";;
@@ -18,6 +17,7 @@ while getopts r:i:t:d:f:p:e: opt; do
   f)    DOCKERFILE="$OPTARG";;
   p)    PLATFORMS="$OPTARG";;
   e)    RC="$OPTARG";;
+  c)    BUILD_CONTEXT="$OPTARG";;
   [?])  usage;;
   esac
 done
@@ -60,4 +60,4 @@ if [ -n  "$NEXUS_PASSWORD" ]; then
   BUILD_PASS_ARGS="--build-arg $NEXUS_PASSWORD"
 fi
 
-docker buildx build $PLATFORM_ARGS $BUILD_DIRECTORY -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE $BUILD_USER_ARGS $BUILD_PASS_ARGS --push
+docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE $BUILD_USER_ARGS $BUILD_PASS_ARGS --push
