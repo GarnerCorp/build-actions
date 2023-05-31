@@ -1,0 +1,78 @@
+name: 'Deploy image'
+description: 'Trigger image deployment'
+author: 'GarnerCorp'
+branding:
+  icon: 'upload-cloud'
+  color: 'purple'
+inputs:
+  repository:
+    description: Repository containing deployment information
+    required: true
+  repository-branch:
+    description: Repository deployment branch
+    required: false
+  ssh-key:
+    description: SSH key (with write permissions) to clone repository
+    required: true
+  working-directory:
+    description: Path within the repository managing deployments
+    required: true
+  name:
+    description: Username to use for git commit
+    required: true
+  mail:
+    description: Email address to use for git commit
+    required: true
+  project-pretty:
+    description: Project name for commit message
+    required: false
+  sha-suffix:
+    description: Suffix for image tag
+    required: false
+  default-branch:
+    description: Default branch
+    default: master
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.repository || !inputs.ssh-key || !inputs.working-directory || !inputs.name || !inputs.mail }}
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+        exit 1
+    - name: Prepare for deployment
+      if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
+      env:
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+      uses: actions/checkout@v3
+      with:
+        path: _deploy
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.repository-branch }}
+        ssh-key: ${{ inputs.ssh-key }}
+    - name: Ensure working directory
+      shell: bash
+      env:
+        working_dir: _deploy/${{ inputs.working-directory }}
+      run: |
+        mkdir -p "$working_dir"
+    - name: Trigger deployment
+      shell: bash
+      if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
+      env:
+        GIT_NAME: ${{ inputs.name }}
+        GIT_MAIL: ${{ inputs.mail }}
+        PROJECT_PRETTY: ${{ inputs.project-pretty }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        SHA_SUFFIX: ${{ inputs.sha-suffix }}
+        COMMIT_URL: ${{ github.event.head_commit.url }}
+        REPO_URL: ${{ github.event.repository.html_url }}
+        BRANCH: ${{ github.head_ref || github.ref_name }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+      working-directory: _deploy/${{ inputs.working-directory }}
+      run: |
+        "$GITHUB_ACTION_PATH/commit-latest-versions.sh"
