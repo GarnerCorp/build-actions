@@ -61,7 +61,7 @@ runs:
         GIT_MAIL: ${{ inputs.mail }}
         PROJECT_PRETTY: ${{ inputs.project-pretty }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        COMMIT_URL: ${{ github.event.push.head_commit.url }}
+        COMMIT_URL: ${{ github.event.head_commit.url }}
         PR_REPO_URL: ${{ github.event.pull_request.head.repo.html_url }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         BRANCH: ${{ github.head_ref || github.ref_name }}
