@@ -50,9 +50,9 @@ runs:
     - name: Ensure working directory
       shell: bash
       env:
-        working_directory: ${{ inputs.working-directory }}
+        working_dir: ${{ inputs.working-directory }}
       run: |
-        mkdir -p "$working_directory"
+        mkdir -p "$working_dir"
     - name: Trigger E2E
       shell: bash
       if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
