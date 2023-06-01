@@ -51,8 +51,14 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
 
+    - name: Zip coverage
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        zip -r /tmp/scoverage.zip . -i target/scala-*/*coverage-report/**
+
     - name: Upload coverage
       uses: actions/upload-artifact@v3
       with:
         name: ${{ inputs.artifact }}
-        path: ${{ inputs.working-directory }}/target/scala-*/*coverage-report/**
+        path: /tmp/scoverage.zip
