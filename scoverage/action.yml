@@ -55,7 +55,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        zip -r /tmp/scoverage.zip . -i target/scala-*/*coverage-report/**
+        find target/scala-*/*coverage-report -type f | zip /tmp/scoverage.zip -@
 
     - name: Upload coverage
       uses: actions/upload-artifact@v3
