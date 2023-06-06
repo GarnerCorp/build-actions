@@ -1,0 +1,25 @@
+name: 'Validate needs'
+description: 'Ensure needed jobs have not failed'
+author: 'GarnerCorp'
+inputs:
+  needs-json:
+    description: "Jobs to check"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Report jobs that failed
+      run: |
+        echo "$needs" > jobs-ran.json
+        jq -r '[map_values(select(.result == "failure"))|keys[]]|join (" job, ")' jobs-ran.json > jobs-failed.txt
+        if ! grep -q . jobs-failed.txt; then
+          exit 0
+        fi
+        message="Failing because the $(cat jobs-failed.txt) job failed"
+        echo "::error ::$message"
+        echo ":stop_sign: $message" >> "$GITHUB_STEP_SUMMARY"
+        exit 1
+      env:
+        needs: ${{ inputs.needs-json }}
+      shell: bash
