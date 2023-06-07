@@ -28,6 +28,9 @@ inputs:
     description: Default branch
     default: master
     required: false
+  needs-json:
+    description: "Jobs to check"
+    required: false
 
 runs:
   using: 'composite'
@@ -38,6 +41,11 @@ runs:
       run: |
         "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
         exit 1
+    - name: Validate needs
+      if: ${{ inputs.needs-json }}
+      uses: garnercorp/build-actions/needs@main
+      with:
+        needs-json: ${{ inputs.needs-json }}
     - name: Prepare for E2E Deployment
       if: env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request
       env:
