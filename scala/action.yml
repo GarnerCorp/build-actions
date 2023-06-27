@@ -10,10 +10,10 @@ inputs:
     default: "https://repo.maven.apache.org/maven2/"
     required: false
   maven-username:
-    description: "Username for the npm-registry"
+    description: "Username for the maven-registry"
     required: false
   maven-password:
-    description: "Password for the npm-registry"
+    description: "Password for the maven-registry"
     required: false
   java-distribution:
     description: "Java distribution"
