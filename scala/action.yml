@@ -47,7 +47,7 @@ inputs:
     default: ""
     required: false
   extra-sbt-args:
-    description: "Extra arguments to sbt"
+    description: "Extra arguments for sbt passed to build script via environment variable: EXTRA_SBT_ARGS"
     default: ""
     required: false
   build-script:
@@ -159,7 +159,7 @@ runs:
       shell: bash
       run: |
         if [ -n "$BUILD_SCRIPT" ]; then
-          $BUILD_SCRIPT "$BUILD_SCRIPT_ARGS" "$EXTRA_SBT_ARGS"
+          $BUILD_SCRIPT "$BUILD_SCRIPT_ARGS"
         else
           $GITHUB_ACTION_PATH/build-scala-ci.sh
         fi
