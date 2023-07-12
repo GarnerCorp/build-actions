@@ -159,7 +159,7 @@ runs:
       shell: bash
       run: |
         if [ -n "$BUILD_SCRIPT" ]; then
-          $BUILD_SCRIPT "$BUILD_SCRIPT_ARGS"
+          $BUILD_SCRIPT $BUILD_SCRIPT_ARGS
         else
           $GITHUB_ACTION_PATH/build-scala-ci.sh
         fi
