@@ -27,8 +27,8 @@ runs:
     - name: Notify Slack Channel
       shell: bash
       run: |
-        curl "${{ inputs.slack-webhook }}" -X POST -H "Content-Type: application/json"
-          -d '{
+        curl "${{ inputs.slack-webhook }}" -X POST -H "Content-Type: application/json" \
+          --data '{
             "username": "${{ inputs.slack-username }}",
             "channel": "${{ inputs.slack-channel }}", 
             "attachments": [
