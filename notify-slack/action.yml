@@ -28,7 +28,7 @@ runs:
       shell: bash
       run: |
         curl "${{ inputs.slack-webhook }}" -X POST -H "Content-Type: application/json"
-          --data '{
+          -d '{
             "username": "${{ inputs.slack-username }}",
             "channel": "${{ inputs.slack-channel }}", 
             "attachments": [
