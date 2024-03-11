@@ -7,7 +7,7 @@ inputs:
   commit-message:
     description: Commit message, will be ignored if used with same-commit
     required: false
-    default: "Prettified Code!"
+    default: "Run prettier to format the code"
   commit-description:
     description: Extended commit message, will be ignored if used with same-commit
     required: false
