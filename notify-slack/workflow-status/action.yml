@@ -1,5 +1,5 @@
-name: 'Slack Notification'
-description: 'Send notifications to Slack'
+name: 'Workflow Status Slack Notification'
+description: 'Send notifications to Slack about the status of a github workflow'
 inputs:
   slack-webhook:
     description: 'Slack webhook URL'
@@ -10,16 +10,9 @@ inputs:
   slack-channel:
     description: 'Slack channel to post the message'
     required: true
-  title:
-    description: 'Message title'
+  workflow-status:
+    description: 'The status of the workflow'
     required: true
-  text:
-    description: 'Message text'
-    required: true
-  color:
-    description: 'Color of the message'
-    required: false
-    default: 'good'
 
 runs:
   using: composite
@@ -33,9 +26,8 @@ runs:
             "channel": "${{ inputs.slack-channel }}", 
             "attachments": [
             {
-                "title": "${{ inputs.title }}",
-                "text": "${{ inputs.text }}",
-                "color": "${{ inputs.color }}"
-              }
-            ]
-          }'
+                "title": "[${{ github.repository }}] ${{ github.workflow }} ${{ inputs.workflow-status }} on ${{ github.event.repository.default_branch }}",
+                "text": "*<https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha || github.sha }}|Commit>* *<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Workflow>*",
+            }
+          ]
+        }'
