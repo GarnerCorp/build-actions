@@ -195,9 +195,34 @@ runs:
       working-directory: ${{ inputs.working-directory }}
 
     - name: Install Dependencies
+      id: install-dependencies
       run: yarn install
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+
+    - name: Regenerate yarn.lock on failure
+      if: ${{ failure() && steps.install-dependencies.conclusion == 'failure' }}
+      shell: bash
+      env:
+        YARN_CHECKSUM_BEHAVIOR: update
+      run: |
+        yarn install
+        (
+          echo '# Bad `yarn.lock`'
+          echo '## Bad local cache'
+          echo 'This could be caused by bad locally cached packages.'
+          echo 'Try running: [`yarn cache clean --all`](https://yarnpkg.com/cli/cache/clean#options)'
+          echo '## Generated `yarn.lock` file'
+          echo 'You can retrieve the `yarn.lock` file from artifacts (above)'
+        ) >> "$GITHUB_STEP_SUMMARY"
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Upload regenerated yarn.lock on failure
+      if: ${{ failure() && steps.install-dependencies.conclusion == 'failure' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.working-directory != '.' && format('{0}-', inputs.working-directory) || '' }}yarn.lock
+        path: ${{ inputs.working-directory }}/yarn.lock
 
     - name: Build
       run: ${{ inputs.yarn-build-command }}
