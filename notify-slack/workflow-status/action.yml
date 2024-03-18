@@ -32,7 +32,7 @@ runs:
             "channel": "${{ inputs.slack-channel }}", 
             "attachments": [
             {
-                "title": "[${{ github.repository }}] ${{ github.workflow }} ${{ inputs.workflow-status }} on ${{ github.head_ref }}",
+                "title": "[${{ github.repository }}] ${{ github.workflow }} ${{ inputs.workflow-status }} on ${{ github.head_ref || github.ref_name }}",
                 "text": "*<https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha || github.sha }}|Commit>* *<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Workflow>*",
                 "color": "'$color'"
             }
