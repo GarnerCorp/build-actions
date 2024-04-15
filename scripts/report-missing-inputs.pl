@@ -31,7 +31,7 @@ while (<INPUT>) {
         if (/^  (\S+):/) {
             $key = $1;
         } elsif (/^    required: true/) {
-            push @required, $key unless %inputs && defined $inputs{$key};
+            push @required, $key unless %inputs && defined $inputs{$key} && $inputs{$key} =~ /./;
         }
     }
 }
