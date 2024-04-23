@@ -169,6 +169,15 @@ prettier_output_summary() {
   )
 }
 
+dry_run_check() {
+  # case when --write is used with dry-run so if something is unpretty there will always have _git_changed
+  if _dry_run; then
+    summarize_changes 'Unpretty Files Changes'
+    echo "Finishing dry-run. Exiting before committing." | tee -a "$GITHUB_STEP_SUMMARY"
+    exit 1
+  fi
+}
+
 npx prettier $prettier_options > "$prettier_out" 2> "$prettier_err" \
   || {
     PRETTIER_RESULT=$?;
@@ -215,13 +224,6 @@ if ! _git_changed; then
   exit
 fi
 
-# case when --write is used with dry-run so if something is unpretty there will always have _git_changed
-if _dry_run; then
-  summarize_changes 'Unpretty Files Changes'
-  echo "Finishing dry-run. Exiting before committing." | tee -a "$GITHUB_STEP_SUMMARY"
-  exit 1
-fi
-
 # Calling method to configure the git environment
 _git_setup
 
@@ -248,6 +250,9 @@ if _amend_commit; then
     git pull
     git commit --amend --no-edit
   ) | tee -a "$GITHUB_STEP_SUMMARY"
+
+  dry_run_check
+
   if _has_upstream; then
     git push origin -f || failed_push=1
   fi
@@ -258,6 +263,9 @@ else
   else
     git commit -n -m "$INPUT_COMMIT_MESSAGE" ${INPUT_COMMIT_OPTIONS:+"$INPUT_COMMIT_OPTIONS"} || commit_canary=
   fi
+
+  dry_run_check
+
   if [ -n "$commit_canary" ]; then
     log_blame_rev "Prettier"
   else
