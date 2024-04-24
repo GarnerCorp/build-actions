@@ -11,12 +11,14 @@ for my $extension (split " ", $ENV{INPUT_FILE_EXTENSIONS}) {
 open my $git, "-|", "git ls-files -z";
 {
   local $/ = "\0";
+  my $sought_extensions_re = join '|', (map { s/([\\{}.\[\]])/\\$1/g; $_ } keys %supported_extensions);
   while (my $file_with_path = <$git>) {
     chomp $file_with_path;
-    my ($path, $file, $ext) = ($file_with_path =~ m<(.*/|)(?:([^/.]+)(\.[^/]+))$>);
+    my ($path, $file) = ($file_with_path =~ m<(.*/|)([^/]+)$>);
     $path = "." if $path eq "";
     $path =~ s</$><>;
-    next unless defined $supported_extensions{$ext};
+    next unless $file =~ /($sought_extensions_re)$/;
+    my $ext = $1;
     $found_extensions{$ext} = 1;
     $interesting_paths{$path} = 1;
   }
