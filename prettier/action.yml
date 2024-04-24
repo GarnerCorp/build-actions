@@ -39,7 +39,7 @@ inputs:
     required: false
     default: "**"
   dry:
-    description: Running the script in dry mode just shows whether there are files that should be prettified or not
+    description: Run prettier in dry-run mode. Display which files are/aren't pretty and changes made by prettier in the GitHub job summary
     required: false
     default: "false"
   prettier-version:
