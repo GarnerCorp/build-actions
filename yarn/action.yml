@@ -116,7 +116,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        if yarn --version | grep -q '1\.'; then
+        if yarn --version | grep -q '^1\.'; then
           echo "::error ::Yarn Classic (1.x) is not supported. Please upgrade to Yarn Berry."
           exit 1
         fi
