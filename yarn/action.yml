@@ -1,9 +1,9 @@
-name: 'Build Image w/ Yarn'
-description: 'Build an image using yarn'
-author: 'GarnerCorp'
+name: "Build Image w/ Yarn"
+description: "Build an image using yarn"
+author: "GarnerCorp"
 branding:
-  icon: 'aperture'
-  color: 'purple'
+  icon: "aperture"
+  color: "purple"
 inputs:
   checkout:
     description: Whether or not to checkout the repository you are currently working in
@@ -79,7 +79,7 @@ inputs:
     required: false
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Validate inputs (yarn berry)
       if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || (inputs.yarn-version >= '2' && !inputs.npm-username != !inputs.npm-password) }}

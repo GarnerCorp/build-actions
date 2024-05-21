@@ -1,67 +1,67 @@
 {
-    "problemMatcher": [
+  "problemMatcher": [
+    {
+      "owner": "yarn-fatal",
+      "severity": "error",
+      "pattern": [
         {
-            "owner": "yarn-fatal",
-            "severity": "error",
-            "pattern": [
-                {
-                    "regexp": "(YN00(?:0[19]|1[012567]|2[0-79]|30|4[67]|50|7[15])): │ (.*)",
-                    "code": 1,
-                    "message": 2
-                }
-            ]
-        },
-        {
-            "owner": "yarn-warning",
-            "severity": "warning",
-            "pattern": [
-                {
-                    "regexp": "(YN00(?:0[34]|1[348]|3[12]|59|6[012389]|7[267])): │ (.*)",
-                    "code": 1,
-                    "message": 2
-                }
-            ]
-        },
-        {
-            "owner": "yarn-info",
-            "severity": "notice",
-            "pattern": [
-                {
-                    "regexp": "(YN00(?:0[25678]|19|4[89])): │ (.*)",
-                    "code": 1,
-                    "message": 2
-                }
-            ]
-        },
-        {
-            "owner": "yarn-YN0028",
-            "severity": "error",
-            "pattern": [
-                {
-                    "regexp": "YN0028: │ ([A-Z].*)",
-                    "message": 1
-                }
-            ]
-        },
-        {
-            "owner": "angular-error",
-            "severity": "error",
-            "pattern": [
-                {
-                    "regexp": "NG03\\d{2}: (.*)",
-                    "message": 1
-                }
-            ]
-        },
-        {
-            "owner": "karma-information",
-            "severity": "notice",
-            "pattern": [
-                {
-                    "regexp": "(TOTAL: \\d+ FAILED, \\d+ SUCCESS)",
-                    "message": 1
-                }
-            ]
+          "regexp": "(YN00(?:0[19]|1[012567]|2[0-79]|30|4[67]|50|7[15])): │ (.*)",
+          "code": 1,
+          "message": 2
         }
-    ]
+      ]
+    },
+    {
+      "owner": "yarn-warning",
+      "severity": "warning",
+      "pattern": [
+        {
+          "regexp": "(YN00(?:0[34]|1[348]|3[12]|59|6[012389]|7[267])): │ (.*)",
+          "code": 1,
+          "message": 2
+        }
+      ]
+    },
+    {
+      "owner": "yarn-info",
+      "severity": "notice",
+      "pattern": [
+        {
+          "regexp": "(YN00(?:0[25678]|19|4[89])): │ (.*)",
+          "code": 1,
+          "message": 2
+        }
+      ]
+    },
+    {
+      "owner": "yarn-YN0028",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "YN0028: │ ([A-Z].*)",
+          "message": 1
+        }
+      ]
+    },
+    {
+      "owner": "angular-error",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "NG03\\d{2}: (.*)",
+          "message": 1
+        }
+      ]
+    },
+    {
+      "owner": "karma-information",
+      "severity": "notice",
+      "pattern": [
+        {
+          "regexp": "(TOTAL: \\d+ FAILED, \\d+ SUCCESS)",
+          "message": 1
+        }
+      ]
+    }
+  ]
 }
