@@ -19,21 +19,13 @@ inputs:
   npm-password:
     description: "Password for the npm-registry"
     required: false
-  npm-email:
-    description: "Email for the npm-registry (required yarn v1)"
-    required: false
   node-version:
     description: "Node version to use"
     default: "18"
     required: false
   yarn-version:
-    description: "Yarn version to use"
-    default: "3.6.4"
+    description: "Yarn version to use, if not specified, Corepack will use the `packageManager` property defined in package.json"
     required: false
-  yarn-use-berry:
-    description: "Use yarn berry (~3)"
-    required: false
-    deprecationMessage: "Use yarn-version instead"
   working-directory:
     description: "Directory containing package.json"
     default: "."
@@ -81,20 +73,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Validate inputs (yarn berry)
-      if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || (inputs.yarn-version >= '2' && !inputs.npm-username != !inputs.npm-password) }}
+    - name: Validate inputs
+      if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || !inputs.npm-username != !inputs.npm-password }}
       shell: bash
       env:
         CODEPENDENT: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "npm-username", "npm-password" ] ]'
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
-
-    - name: Validate inputs (yarn v1)
-      if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || (inputs.yarn-version < '2' && (!inputs.npm-username != !inputs.npm-password || !inputs.npm-username != !inputs.npm-email)) }}
-      shell: bash
-      env:
-        CODEPENDENT: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "npm-username", "npm-password", "npm-email" ] ]'
         INPUTS: ${{ toJSON(inputs) }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
@@ -103,50 +86,46 @@ runs:
       if: ${{ inputs.checkout == 'true' }}
       uses: actions/checkout@v4
 
-    - name: Enable corepack
-      shell: bash
-      run: corepack enable
-
     - name: Set up Node ${{ inputs.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Use Yarn Berry
+    - name: Enable corepack
       shell: bash
-      if: inputs.yarn-version >= '2'
+      run: corepack enable
+
+    - name: Set Yarn version
+      shell: bash
+      if: inputs.yarn-version
+      working-directory: ${{ inputs.working-directory }}
       env:
         yarn_version: ${{ inputs.yarn-version }}
       run: |
         $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
-        if ! command -v yarn >/dev/null; then
-          corepack prepare yarn@stable --activate
+        if [ -n "$yarn_version" ]; then
+          yarn set version "$yarn_version"
         fi
-        yarn set version "$yarn_version"
 
-    - name: Ensure yarn is available
+    - name: Show yarn version
+      run: yarn --version
       shell: bash
-      if: inputs.yarn-version < '2'
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Validate Yarn version
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
-        if ! command -v yarn >/dev/null; then
-          npm install --global yarn
+        if yarn --version | grep -q '1\.'; then
+          echo "::error ::Yarn Classic (1.x) is not supported. Please upgrade to Yarn Berry."
+          exit 1
         fi
 
-    - name: Get yarn cache directory path (yarn berry)
-      if: inputs.yarn-version >= '2'
+    - name: Get yarn cache directory path
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         dir="$(yarn config get cacheFolder)"
-        mkdir -p "$dir"
-        echo "CACHE_DIR_YARN=$dir" | tee -a "$GITHUB_ENV"
-
-    - name: Get yarn cache directory path (yarn v1)
-      if: inputs.yarn-version < '2'
-      working-directory: ${{ inputs.working-directory }}
-      shell: bash
-      run: |
-        dir="$(yarn cache dir)"
         mkdir -p "$dir"
         echo "CACHE_DIR_YARN=$dir" | tee -a "$GITHUB_ENV"
 
@@ -159,7 +138,7 @@ runs:
         restore-keys: yarn-${{ runner.os }}-${{ inputs.working-directory }}
 
     - name: Set up yarn credentials
-      if: inputs.npm-username && inputs.npm-password && inputs.yarn-version >= '2'
+      if: inputs.npm-username && inputs.npm-password
       shell: bash
       env:
         NPM_USER: ${{ inputs.npm-username }}
@@ -171,28 +150,6 @@ runs:
         yarn config set npmAlwaysAuth true
         yarn config set npmRegistryServer "$NPM_REGISTRY"
         yarn config set npmAuthIdent "$yarn_credentials"
-
-    - name: Set up npm credentials
-      if: inputs.npm-username && inputs.npm-password && inputs.npm-email && inputs.yarn-version < '2'
-      # https://github.com/npm/cli/issues/2852
-      shell: bash
-      env:
-        NPM_USER: ${{ inputs.npm-username }}
-        NPM_PASSWORD: ${{ inputs.npm-password }}
-        NPM_REGISTRY: ${{ inputs.npm-registry }}
-        NPM_EMAIL: ${{ inputs.npm-email }}
-      run: |
-        npm_credentials=$(echo -n "$NPM_USER:$NPM_PASSWORD" | base64)
-
-        npm config set _auth "$npm_credentials"
-        npm config set email "$NPM_EMAIL"
-        npm config set registry "$NPM_REGISTRY"
-        npm config set always-auth true
-
-    - name: Show yarn version
-      run: yarn --version
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
 
     - name: Install Dependencies
       id: install-dependencies
