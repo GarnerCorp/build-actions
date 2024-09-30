@@ -1,0 +1,149 @@
+name: "Bump Version"
+description: "Create and push a version bump commit automatically picking major/minor/patch based on the contents of the major and minor directories"
+author: "GarnerCorp"
+branding:
+  icon: "arrow-up"
+  color: "green"
+inputs:
+  version-file-path:
+    description: Path to the version file
+    required: true
+  version-type:
+    description: Version file type ("node", "sbt") -- if not provided a version-parser must be provided
+    required: false
+  version-parser:
+    description: Program (called to `parse` and `update` the version file)
+    required: false
+  git-name:
+    description: The name of the user who will make the version commit
+    required: false
+  git-email:
+    description: The email of the user who will make the version commit
+    required: false
+  major:
+    description: Directory containing files that signify a major version bump (to be combined into a message and deleted)
+    required: false
+  minor:
+    description: Directory containing files that signify a minor version bump (to be combined into a message and deleted)
+    required: false
+  debug:
+    description: Trace next-version steps
+    required: false
+outputs:
+  version:
+    description: Generated version based on current version and presence of files in the major and minor directories
+    value: ${{ steps.bump-version.outputs.version }}
+  old-version:
+    description: Current version from given version file
+    value: ${{ steps.bump-version.outputs.old-version }}
+  commit-log:
+    description: Path to file containing contents of files in the major and minor directories
+    value: ${{ steps.bump-version.outputs.commit-log }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.version-file-path || (!inputs.version-pattern && !inputs.version_parser) }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+      run: |
+        "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
+
+    - name: get-current-version
+      if: ${{ !inputs.version-type }}
+      shell: bash
+      run: |
+        : Ask the version-parser to get the version from the version file
+        echo "CURRENT_VERSION=$("$VERSION_PARSER" parse "$VERSION_FILE_PATH")" >> "$GITHUB_ENV"
+      env:
+        VERSION_PARSER: ${{ inputs.version-parser }}
+        VERSION_FILE_PATH: ${{ inputs.version-file-path }}
+
+    - name: Set variables
+      shell: bash
+      run: |
+        : Set the version pattern based on the version type
+        if [ "${{ inputs.version-type }}" == "node" ]; then
+          echo 'VERSION_PATTERN=${{ env.VERSION_PATTERN_NODE }}' >> "$GITHUB_ENV"
+        elif [ "${{ inputs.version-type }}" == "sbt" ]; then
+          echo 'VERSION_PATTERN=${{ env.VERSION_PATTERN_SBT }}' >> "$GITHUB_ENV"
+        else
+          echo 'VERSION_PATTERN=' >> "$GITHUB_ENV"
+        fi
+
+        # Set the git name and email
+        echo "GIT_NAME=$GIT_NAME" >> "$GITHUB_ENV"
+        echo "GIT_MAIL=$GIT_MAIL" >> "$GITHUB_ENV"
+      env:
+        VERSION_PATTERN_NODE: '"version": "(\d+\.\d+\.\d+)"'
+        VERSION_PATTERN_SBT: 'ThisBuild / version := "(\d+\.\d+\.\d+)"'
+        GIT_NAME: ${{ inputs.git-name }}
+        GIT_MAIL: ${{ inputs.git-email }}
+
+    - uses: GarnerCorp/build-actions/next-version@main
+      id: bump
+      with:
+        version-file-path: ${{ inputs.version-file-path }}
+        version-pattern: ${{ env.VERSION_PATTERN }}
+        current-version: ${{ env.CURRENT_VERSION }}
+        major: ${{ inputs.major }}
+        minor: ${{ inputs.minor }}
+        debug: ${{ inputs.debug }}
+
+    - name: custom-bump
+      if: ${{ inputs.version-parser }}
+      shell: bash
+      run: |
+        : Update the version in the file using custom parser
+        "$VERSION_PARSER" update "$VERSION_FILE" "$VERSION"
+      env:
+        VERSION: ${{ steps.bump.outputs.version }}
+        VERSION_PARSER: ${{ inputs.version-parser }}
+        VERSION_FILE: ${{ inputs.version-file-path }}
+
+    - name: default-bump
+      if: ${{ !inputs.version-parser }}
+      shell: bash
+      run: |
+        : Update the version in the file
+        perl -pi -e 's/$ENV{VERSION_PREFIX}$ENV{OLD_VERSION}/$ENV{VERSION_PREFIX}$ENV{VERSION}/g' "$VERSION_FILE"
+      env:
+        VERSION_PREFIX_NODE: '"version": "'
+        VERSION_PREFIX_SBT: 'ThisBuild / version := "'
+        VERSION_PREFIX: ${{ inputs.version-type == 'node' && env.VERSION_PREFIX_NODE || inputs.version-type == 'sbt' && env.VERSION_PREFIX_SBT || '' }}
+        VERSION: ${{ steps.bump.outputs.version }}
+        OLD_VERSION: ${{ steps.bump.outputs.old-version }}
+        VERSION_FILE: ${{ inputs.version-file-path }}
+
+    - name: set-git-username
+      if: ${{ env.GIT_NAME }}
+      shell: bash
+      run: |
+        : Set the git username
+        git config --global user.name "$GIT_NAME"
+
+    - name: set-git-email
+      if: ${{ env.GIT_MAIL }}
+      shell: bash
+      run: |
+        : Set the git email
+        git config --global user.email "$GIT_MAIL"
+
+    - name: commit
+      shell: bash
+      run: |
+        : Commit the version bump
+        git add -u
+        commit_message=$(mktemp)
+        (
+          echo "Update version to $VERSION"
+          echo
+          cat $COMMIT_LOG
+        ) >> $commit_message
+        git commit -F "$commit_message"
+        git push origin HEAD
+      env:
+        VERSION: ${{ steps.bump.outputs.version }}
+        COMMIT_LOG: ${{ steps.bump.outputs.commit-log }}

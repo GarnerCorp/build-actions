@@ -71,7 +71,13 @@ else
     bump_type="patch"
 fi
 
-current_version=$(perl -ne 'next unless s/.*$ENV{VERSION_PATTERN}/$1/; print' "$VERSION_FILE")
+if [ -n "$CURRENT_VERSION" ]; then
+    current_version="$CURRENT_VERSION"
+else
+    current_version=$(perl -ne 'next unless s/.*$ENV{VERSION_PATTERN}/$1/; print' "$VERSION_FILE")
+fi
+echo "VERSION_PATTERN: $VERSION_PATTERN"
+
 
 new_version=$(bump_version "$current_version" "$bump_type")
 

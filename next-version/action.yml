@@ -10,7 +10,10 @@ inputs:
     required: true
   version-pattern:
     description: Perl regular expression containing a capture group which matches the version value from the specified file
-    required: true
+    required: false
+  current-version:
+    description: Current version from given version file
+    required: false
   major:
     description: Directory containing files that signify a major version bump (to be combined into a message and deleted)
     required: false
@@ -35,7 +38,7 @@ runs:
   using: "composite"
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.version-pattern || !inputs.version-file-path }}
+      if: ${{ (!inputs.version-pattern || !inputs.version-file-path ) && !inputs.current-version }}
       shell: bash
       env:
         INPUTS: ${{ toJSON(inputs) }}
@@ -50,6 +53,7 @@ runs:
       env:
         VERSION_FILE: ${{ inputs.version-file-path }}
         VERSION_PATTERN: ${{ inputs.version-pattern }}
+        CURRENT_VERSION: ${{ inputs.current-version }}
         MAJOR: ${{ inputs.major }}
         MINOR: ${{ inputs.minor }}
         DEBUG: ${{ inputs.debug }}
