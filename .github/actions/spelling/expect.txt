@@ -9,6 +9,8 @@ gpg
 javaagent
 JDK
 keyserver
+maxdepth
+mindepth
 multiarch
 noreply
 npmjs

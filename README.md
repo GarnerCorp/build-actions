@@ -10,3 +10,4 @@ Actions for building workflows to build/publish images
 - [scoverage](scoverage/action.yml)
 - [needs](needs/action.yml)
 - [prettier](prettier/action.yml)
+- [next-version](next-version/action.yml)
