@@ -1,0 +1,59 @@
+name: "Next Version"
+description: "Calculate next version based on files in major and minor"
+author: "GarnerCorp"
+branding:
+  icon: "arrow-up"
+  color: "orange"
+inputs:
+  version-file-path:
+    description: Path to the version file
+    required: true
+  version-pattern:
+    description: Perl regular expression containing a capture group which matches the version value from the specified file
+    required: false
+  current-version:
+    description: Current version from given version file
+    required: false
+  major:
+    description: Directory containing files that signify a major version bump (to be combined into a message and deleted)
+    required: false
+  minor:
+    description: Directory containing files that signify a minor version bump (to be combined into a message and deleted)
+    required: false
+  debug:
+    description: Trace action steps
+    required: false
+outputs:
+  version:
+    description: Generated version based on current version and presence of files in the major and minor directories.
+    value: ${{ steps.bump-version.outputs.version }}
+  old-version:
+    description: Current version from given version file.
+    value: ${{ steps.bump-version.outputs.old-version }}
+  commit-log:
+    description: Path to file containing contents of files in the major and minor directories.
+    value: ${{ steps.bump-version.outputs.commit-log }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ (!inputs.version-pattern || !inputs.version-file-path ) && !inputs.current-version }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+      run: |
+        "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
+
+    - name: Bump Version
+      id: bump-version
+      shell: bash
+      run: |
+        "${{ github.action_path }}/next-version.sh"
+      env:
+        VERSION_FILE: ${{ inputs.version-file-path }}
+        VERSION_PATTERN: ${{ inputs.version-pattern }}
+        CURRENT_VERSION: ${{ inputs.current-version }}
+        MAJOR: ${{ inputs.major }}
+        MINOR: ${{ inputs.minor }}
+        DEBUG: ${{ inputs.debug }}
