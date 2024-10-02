@@ -26,6 +26,10 @@ inputs:
   minor:
     description: Directory containing files that signify a minor version bump (to be combined into a message and deleted)
     required: false
+  push:
+    description: Whether or not to push the commit to the repository
+    required: false
+    default: true
   debug:
     description: Trace next-version steps
     required: false
@@ -143,7 +147,13 @@ runs:
           cat $COMMIT_LOG
         ) >> $commit_message
         git commit -F "$commit_message"
-        git push origin HEAD
       env:
         VERSION: ${{ steps.bump.outputs.version }}
         COMMIT_LOG: ${{ steps.bump.outputs.commit-log }}
+
+    - name: push
+      if: ${{ inputs.push }}
+      shell: bash
+      run: |
+        : Push the version bump commit
+        git push origin HEAD
