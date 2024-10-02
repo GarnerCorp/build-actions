@@ -81,7 +81,7 @@ runs:
         echo "GIT_NAME=$GIT_NAME" >> "$GITHUB_ENV"
         echo "GIT_MAIL=$GIT_MAIL" >> "$GITHUB_ENV"
       env:
-        VERSION_PATTERN_NODE: '"version": "(\d+\.\d+\.\d+)"'
+        VERSION_PATTERN_NODE: '^\s*"version": "(\d+\.\d+\.\d+)".*$'
         VERSION_PATTERN_SBT: 'ThisBuild / version := "(\d+\.\d+\.\d+)"'
         GIT_NAME: ${{ inputs.git-name }}
         GIT_MAIL: ${{ inputs.git-email }}
