@@ -86,7 +86,7 @@ runs:
         GIT_NAME: ${{ inputs.git-name }}
         GIT_MAIL: ${{ inputs.git-email }}
 
-    - uses: GarnerCorp/build-actions/next-version@main
+    - uses: GarnerCorp/build-actions/next-version@bump-action-real-world
       id: bump
       with:
         version-file-path: ${{ inputs.version-file-path }}
