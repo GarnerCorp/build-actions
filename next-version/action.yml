@@ -49,7 +49,7 @@ runs:
       id: bump-version
       shell: bash
       run: |
-        "${{ github.action_path }}/next-version.sh"
+        "$ACTION_PATH/next-version.sh"
       env:
         VERSION_FILE: ${{ inputs.version-file-path }}
         VERSION_PATTERN: ${{ inputs.version-pattern }}
@@ -57,3 +57,4 @@ runs:
         MAJOR: ${{ inputs.major }}
         MINOR: ${{ inputs.minor }}
         DEBUG: ${{ inputs.debug }}
+        ACTION_PATH: ${{ github.action_path }}
