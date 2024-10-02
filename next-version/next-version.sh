@@ -42,8 +42,8 @@ generate_release_notes() {
     if [ -z "$source" ] || [ ! -d "$source" ]; then
         return
     fi
-    find $source -type f -mindepth 1 -maxdepth 1 ! -name '.*' -print0 -r |
-        xargs -0 -n1 "$ACTION_PATH/consume-release-note-file.sh" >> "$notes" || true
+    find $source -type f -mindepth 1 -maxdepth 1 ! -name '.*' -print0 |
+        xargs -0 -n1 -r "$ACTION_PATH/consume-release-note-file.sh" >> "$notes" || true
     if [ -s "$notes" ]; then
         echo "$notes"
     fi
