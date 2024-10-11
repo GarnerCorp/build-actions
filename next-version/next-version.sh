@@ -54,8 +54,19 @@ if [ ! -s $VERSION_FILE ]; then
     exit 1
 fi
 
+warn_empty_directory() {
+    category="$1"
+    path="$2"
+    if [ -n "$path" ] && [ ! -d "$path" ]; then
+        echo "::warning :: Specified $category directory, '$path' does not exist"
+    fi
+}
+
 major_notes=$(generate_release_notes "$MAJOR")
 minor_notes=$(generate_release_notes "$MINOR")
+
+warn_empty_directory "major" "$MAJOR"
+warn_empty_directory "minor" "$MINOR"
 
 if [ -n "$major_notes" ]; then
     bump_type="major"
@@ -71,7 +82,6 @@ else
     current_version=$(perl -ne 'next unless s/.*$ENV{VERSION_PATTERN}/$1/; print' "$VERSION_FILE")
 fi
 echo "VERSION_PATTERN: $VERSION_PATTERN"
-
 
 new_version=$(bump_version "$current_version" "$bump_type")
 
