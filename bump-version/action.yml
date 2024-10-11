@@ -69,13 +69,20 @@ runs:
       shell: bash
       run: |
         : Set the version pattern based on the version type
-        if [ "${{ inputs.version-type }}" == "node" ]; then
-          echo 'VERSION_PATTERN=${{ env.VERSION_PATTERN_NODE }}' >> "$GITHUB_ENV"
-        elif [ "${{ inputs.version-type }}" == "sbt" ]; then
-          echo 'VERSION_PATTERN=${{ env.VERSION_PATTERN_SBT }}' >> "$GITHUB_ENV"
-        else
-          echo 'VERSION_PATTERN=' >> "$GITHUB_ENV"
-        fi
+        case "$VERSION_TYPE" in
+          "node")
+            echo "VERSION_PATTERN=$VERSION_PATTERN_NODE" >> "$GITHUB_ENV"
+            ;;
+          "sbt")
+            echo "VERSION_PATTERN=$VERSION_PATTERN_SBT" >> "$GITHUB_ENV"
+            ;;
+          *)
+            echo 'VERSION_PATTERN=' >> "$GITHUB_ENV"
+            if [ -n "${{ inputs.version-type }}" ]; then
+              echo "## ⚠️ ::Warning :: The provided version-type '$VERSION_TYPE' is not supported."
+            fi
+            ;;
+        esac
 
         # Set the git name and email
         echo "GIT_NAME=$GIT_NAME" >> "$GITHUB_ENV"
@@ -83,6 +90,7 @@ runs:
       env:
         VERSION_PATTERN_NODE: '^\s*"version": "(\d+\.\d+\.\d+)".*$'
         VERSION_PATTERN_SBT: 'ThisBuild / version := "(\d+\.\d+\.\d+)"'
+        VERSION_TYPE: ${{ inputs.version-type }}
         GIT_NAME: ${{ inputs.git-name }}
         GIT_MAIL: ${{ inputs.git-email }}
 
