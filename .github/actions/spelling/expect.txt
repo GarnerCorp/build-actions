@@ -1,6 +1,7 @@
 amd
 codependent
 corepack
+cred
 debian
 garnercorp
 gcloud
