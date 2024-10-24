@@ -99,10 +99,13 @@ runs:
         project_id: ${{ inputs.container-project }}
 
     - name: Configure GCloud and Docker
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      if: ${{ ! env.ACT }}
       shell: bash
       run: |
-        gcloud auth configure-docker
+        : Configure docker gcloud credential helper if it is not already configured
+        if [ "$(jq -r '.credHelpers["gcr.io"] // empty' ~/.docker/config.json)" = '' ] ; then
+          gcloud auth configure-docker
+        fi
 
     - name: Install sbt
       if: ${{ env.ACT }}
