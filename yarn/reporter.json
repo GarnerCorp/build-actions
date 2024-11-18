@@ -44,6 +44,16 @@
       ]
     },
     {
+      "owner": "missing peer dependency",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "YN0002: │ ([A-Z].*)",
+          "message": 1
+        }
+      ]
+    },
+    {
       "owner": "angular-error",
       "severity": "error",
       "pattern": [
