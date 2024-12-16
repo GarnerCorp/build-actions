@@ -1,0 +1,32 @@
+name: 'Upload kind logs'
+description: 'Collect and upload kind logs'
+author: 'GarnerCorp'
+inputs:
+  log-name:
+    description: "Name for logs artifact"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Collect logs
+      shell: bash
+      if: success() || failure()
+      run: |
+        mkdir -p logs/pod logs/kind
+        for pod in $(kubectl get pods -n e2e-tests -o name); do
+          kubectl logs -n e2e-tests "$pod" --all-containers=true --prefix=true > "logs/$pod.log"
+        done
+        for kind in $(kubectl api-resources -o name); do
+          kubectl get -n e2e-tests "$kind" --sort-by=.metadata.creationTimestamp > "logs/kind/$kind.txt" 2>/dev/null || true
+          if [ -e "logs/kind/$kind.txt" ] && [ ! -s "logs/kind/$kind.txt" ]; then
+            rm "logs/kind/$kind.txt"
+          fi
+        done
+
+    - name: Upload logs
+      if: success() || failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.log-name || 'logs' }}
+        path: logs/
