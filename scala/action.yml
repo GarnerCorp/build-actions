@@ -133,7 +133,7 @@ runs:
         distribution: ${{ inputs.java-distribution }}
         cache: 'sbt'
 
-    - name: Set up SBT
+    - name: Set up sbt
       uses: sbt/setup-sbt@v1
 
     - name: Find Prometheus Agent
