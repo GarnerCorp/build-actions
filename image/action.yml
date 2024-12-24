@@ -45,7 +45,7 @@ inputs:
     description: "The context for the docker"
     required: false
   build-args:
-    description: "A comma separated list of build arguments to pass as the --build-arg flag to docker build"
+    description: "A comma separated list of build arguments to pass as --build-arg flags to docker build"
     required: false
 outputs:
   image:
