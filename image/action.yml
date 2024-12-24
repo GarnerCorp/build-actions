@@ -1,9 +1,9 @@
-name: 'Build Image'
-description: 'Build an image'
-author: 'GarnerCorp'
+name: "Build Image"
+description: "Build an image"
+author: "GarnerCorp"
 branding:
-  icon: 'upload'
-  color: 'yellow'
+  icon: "upload"
+  color: "yellow"
 inputs:
   container-registry:
     description: "Container Registry"
@@ -44,13 +44,16 @@ inputs:
   build-context:
     description: "The context for the docker"
     required: false
+  build-args:
+    description: "A comma separated list of build arguments to pass as the --build-arg flag to docker build"
+    required: false
 outputs:
   image:
     description: "Generated image reference"
     value: ${{ steps.build-and-push-image.outputs.image }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Validate inputs
       if: ${{ !inputs.container-project || !inputs.google-credentials-json != !inputs.google-cloud-sdk-version }}
@@ -95,5 +98,6 @@ runs:
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
         DOCKERFILE: ${{ inputs.dockerfile }}
         BUILD_CONTEXT: ${{ inputs.build-context || inputs.working-directory }}
+        BUILD_ARGS: ${{ inputs.build-args }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"

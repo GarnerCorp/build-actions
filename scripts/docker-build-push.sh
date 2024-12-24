@@ -8,11 +8,11 @@ BUILD_DIRECTORY="."
 DOCKERFILE="Dockerfile"
 
 usage() {
-  echo "Usage: $0 -r repository -i image_name [-t tag] [-e rc] [-p platform1,platform2...] [-d build_directory] [-f dockerfile] [-c build_context]"
+  echo "Usage: $0 -r repository -i image_name [-t tag] [-e rc] [-p platform1,platform2...] [-d build_directory] [-f dockerfile] [-c build_context] [-a build_args]"
   exit 1
 }
 
-while getopts r:i:t:d:f:p:e:c: opt; do
+while getopts r:i:t:d:f:p:e:c:a: opt; do
   case "$opt" in
   r)    REPOSITORY="$OPTARG";;
   i)    IMAGE="$OPTARG";;
@@ -22,6 +22,7 @@ while getopts r:i:t:d:f:p:e:c: opt; do
   p)    PLATFORMS="$OPTARG";;
   e)    RC="$OPTARG";;
   c)    BUILD_CONTEXT="$OPTARG";;
+  a)    BUILD_ARGS="$OPTARG";;
   [?])  usage;;
   esac
 done
@@ -56,6 +57,10 @@ if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
 fi
 
-docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push
+if [ -n "$BUILD_ARGS" ]; then
+  BUILD_ARGS="$(echo $BUILD_ARGS | tr ',' ' ' | xargs -n 1 echo --build-arg)"
+fi
+
+echo $BUILD_ARGS | xargs docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push
 
 echo "image=$PUSH_CONTEXT" >> $GITHUB_OUTPUT
