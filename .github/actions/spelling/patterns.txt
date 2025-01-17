@@ -1,5 +1,8 @@
 # See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-patterns
 
+# program-downloader repository
+\brepository: \S+/\S+$
+
 # Automatically suggested patterns
 # hit-count: 1 file-count: 1
 # tar arguments

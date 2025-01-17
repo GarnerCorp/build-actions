@@ -41,6 +41,9 @@ inputs:
   rc-tag:
     description: "Tag used for release candidates"
     required: false
+  additional-image-tags:
+    description: "Copy image to these additional tags (possibly in other repositories)"
+    required: false
   build-context:
     description: "The context for the docker"
     required: false
@@ -101,3 +104,52 @@ runs:
         BUILD_ARGS: ${{ inputs.build-args }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
+
+    - name: Check for crane
+      if: ${{ inputs.additional-image-tags }}
+      id: crane
+      shell: bash
+      run: |
+        : Check for crane
+        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
+          echo "needed=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install crane
+      if: ${{ steps.crane.outputs.needed }}
+      id: install-crane
+      uses: check-spelling/gh-program-downloader@v0.0.1
+      with:
+        repository: google/go-containerregistry
+        file-re: ^crane
+        destination: "${{ github.workspace }}/../crane"
+
+    - name: Add registries
+      shell: bash
+      env:
+        images: ${{ inputs.additional-image-tags }}
+      run: |
+        : Add google registries
+        for artifact_registry in $(perl -e '
+          my @images = split /\s+/, $ENV{images};
+          my %repos;
+          for my $image (@images) {
+            $image =~ s</.*><>;
+            next unless $image =~ /pkg\.dev$/;
+            $repos{$image} = 1;
+          }
+          print join " ", keys %repos;
+        '); do
+          gcloud auth configure-docker "$artifact_registry"
+        done
+
+    - name: Copy images
+      shell: bash
+      env:
+        published: ${{ steps.build-and-push-image.outputs.image }}
+        images: ${{ inputs.additional-image-tags }}
+      run: |
+        : Copy images
+        for image in $images; do
+          $GITHUB_WORKSPACE/../crane copy "$published" "$image"
+        done
