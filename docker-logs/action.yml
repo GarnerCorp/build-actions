@@ -1,0 +1,29 @@
+name: 'Upload docker logs'
+description: 'Collect and upload docker logs'
+author: 'GarnerCorp'
+inputs:
+  log-name:
+    description: "Name for logs artifact"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Get docker info
+      shell: bash
+      if: always()
+      run: |
+        : Get docker info
+        mkdir -p docker-logs/containers
+        docker info > docker-logs/info.txt
+        docker ps -a > docker-logs/ps.txt
+        for container in $(docker ps -a --format json|jq -r '.Names'); do
+          docker logs "$container" > docker-logs/containers/"$container"
+        done
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.log-name || 'docker-logs' }}
+        path: docker-logs/
