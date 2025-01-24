@@ -36,13 +36,13 @@ inputs:
 outputs:
   version:
     description: Generated version based on current version and presence of files in the major and minor directories
-    value: ${{ steps.bump-version.outputs.version }}
+    value: ${{ steps.bump.outputs.version }}
   old-version:
     description: Current version from given version file
-    value: ${{ steps.bump-version.outputs.old-version }}
+    value: ${{ steps.bump.outputs.old-version }}
   commit-log:
     description: Path to file containing contents of files in the major and minor directories
-    value: ${{ steps.bump-version.outputs.commit-log }}
+    value: ${{ steps.bump.outputs.commit-log }}
 
 runs:
   using: "composite"
