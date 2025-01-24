@@ -9,7 +9,7 @@ inputs:
     description: Path to the version file
     required: true
   version-type:
-    description: Version file type ("node", "sbt") -- if not provided a version-parser must be provided
+    description: Version file type ("node", "sbt", "raw") -- if not provided a version-parser must be provided
     required: false
   version-parser:
     description: Program (called to `parse` and `update` the version file)
@@ -76,9 +76,12 @@ runs:
           "sbt")
             echo "VERSION_PATTERN=$VERSION_PATTERN_SBT" >> "$GITHUB_ENV"
             ;;
+          "raw")
+            echo "VERSION_PATTERN=$VERSION_PATTERN_RAW" >> "$GITHUB_ENV"
+            ;;
           *)
-            echo 'VERSION_PATTERN=' >> "$GITHUB_ENV"
-            if [ -n "${{ inputs.version-type }}" ]; then
+            echo "VERSION_PATTERN=$VERSION_PATTERN" >> "$GITHUB_ENV"
+            if [ -n "$VERSION_TYPE" ]; then
               echo "## ⚠️ ::Warning :: The provided version-type '$VERSION_TYPE' is not supported."
             fi
             ;;
@@ -90,6 +93,8 @@ runs:
       env:
         VERSION_PATTERN_NODE: '^\s*"version": "(\d+\.\d+\.\d+)".*$'
         VERSION_PATTERN_SBT: 'ThisBuild / version := "(\d+\.\d+\.\d+)"'
+        VERSION_PATTERN_RAW: '^(\d+\.\d+\.\d+)$'
+        VERSION_PATTERN: ${{ inputs.version-pattern }}
         VERSION_TYPE: ${{ inputs.version-type }}
         GIT_NAME: ${{ inputs.git-name }}
         GIT_MAIL: ${{ inputs.git-email }}
