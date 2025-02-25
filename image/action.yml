@@ -80,13 +80,32 @@ runs:
         version: ${{ inputs.google-cloud-sdk-version }}
         project_id: ${{ inputs.container-project }}
 
-    - name: Configure GCloud and Docker
-      if: ${{ ! env.ACT }}
+    - name: Add google registries
       shell: bash
+      env:
+        images: >-
+          ${{ inputs.container-registry && inputs.container-project && format('{0}/{1}', inputs.container-registry, inputs.container-project) || ''}}
+          ${{ inputs.additional-image-tags }}
       run: |
-        : Configure docker gcloud credential helper if it is not already configured
-        if [ "$(jq -r '.credHelpers["gcr.io"] // empty' ~/.docker/config.json)" = '' ] ; then
-          gcloud auth configure-docker
+        : Configure docker gcloud credential helpers if they are not already configured
+        registries=$(perl -e '
+          my @images = split /\s+/, $ENV{images};
+          my %repos;
+          for my $image (@images) {
+            $image =~ s</.*><>;
+            next unless $image =~ /\bgcr\.io$|pkg\.dev$/;
+            $repos{$image} = 1;
+          }
+          print join " ", sort keys %repos;
+        ')
+        if [ -n "$registries" ]; then
+          echo ::group::Configure docker gcloud credential helpers
+          for registry in $registries; do
+            if [ "$(jq -r '.credHelpers["$registry"] // empty' ~/.docker/config.json)" = '' ] ; then
+              gcloud auth configure-docker "$registry"
+            fi
+          done
+          echo "::end"group::
         fi
 
     - name: Build and Push Image
@@ -123,25 +142,6 @@ runs:
         repository: google/go-containerregistry
         file-re: ^crane
         destination: "${{ github.workspace }}/../crane"
-
-    - name: Add registries
-      shell: bash
-      env:
-        images: ${{ inputs.additional-image-tags }}
-      run: |
-        : Add google registries
-        for artifact_registry in $(perl -e '
-          my @images = split /\s+/, $ENV{images};
-          my %repos;
-          for my $image (@images) {
-            $image =~ s</.*><>;
-            next unless $image =~ /pkg\.dev$/;
-            $repos{$image} = 1;
-          }
-          print join " ", keys %repos;
-        '); do
-          gcloud auth configure-docker "$artifact_registry"
-        done
 
     - name: Copy images
       shell: bash

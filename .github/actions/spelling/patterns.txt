@@ -1,5 +1,8 @@
 # See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-patterns
 
+# regex word breaks
+\\b(?=[a-z])
+
 # program-downloader repository
 \brepository: \S+/\S+$
 
