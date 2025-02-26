@@ -144,6 +144,7 @@ runs:
         destination: "${{ github.workspace }}/../crane"
 
     - name: Copy images
+      if: ${{ inputs.additional-image-tags }}
       shell: bash
       env:
         published: ${{ steps.build-and-push-image.outputs.image }}
@@ -153,3 +154,18 @@ runs:
         for image in $images; do
           $GITHUB_WORKSPACE/../crane copy "$published" "$image"
         done
+
+    - name: Summary
+      shell: bash
+      env:
+        published: ${{ steps.build-and-push-image.outputs.image }}
+        images: ${{ inputs.additional-image-tags }}
+      run: |
+        : Summary
+        (
+          echo '# Published images'
+          echo
+          for image in $published $images; do
+            echo "* [$image](https://$image)"
+          done
+        ) >> "$GITHUB_STEP_SUMMARY"
