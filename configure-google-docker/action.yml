@@ -1,0 +1,27 @@
+name: "Configure Google Docker"
+description: "Configure Google Docker Credential helper"
+author: "GarnerCorp"
+branding:
+  icon: "sliders"
+  color: "blue"
+inputs:
+  container-registries:
+    description: "Container Registries"
+    required: false
+  images:
+    description: "Image urls"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add google registries
+      shell: bash
+      if: ${{ inputs.container-registries || inputs.images }}
+      env:
+        registries: >-
+          ${{ inputs.container-registries }}
+          ${{ inputs.images }}
+      run: |
+        : Configure docker gcloud credential helpers if they are not already configured
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
