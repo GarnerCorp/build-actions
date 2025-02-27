@@ -65,6 +65,9 @@ inputs:
   container-project:
     description: "Path within container registry for team"
     required: false
+  artifact-registries:
+    description: "Google Artifact Registries that may need docker access"
+    required: false
   skip-checkout:
     description: "Use files from working directory instead of checking out"
     required: false
@@ -97,6 +100,25 @@ runs:
       with:
         version: ${{ inputs.google-cloud-sdk-version }}
         project_id: ${{ inputs.container-project }}
+
+    - name: Add google registries
+      shell: bash
+      env:
+        registries: >-
+          ${{ inputs.container-project && 'gcr.io' || '' }}
+          ${{ inputs.artifact-registries }}
+      if: ${{ env.registries }}
+      run: |
+        : Configure docker gcloud credential helpers if they are not already configured
+        if [ -n "$registries" ]; then
+          echo ::group::Configure docker gcloud credential helpers
+          for registry in $registries; do
+            if [ "$(jq -r '.credHelpers["$registry"] // empty' ~/.docker/config.json)" = '' ] ; then
+              gcloud auth configure-docker "$registry"
+            fi
+          done
+          echo "::end"group::
+        fi
 
     - name: Install sbt
       if: ${{ env.ACT }}
