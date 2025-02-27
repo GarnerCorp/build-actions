@@ -1,0 +1,73 @@
+name: "Tag Images"
+description: "Add tags to images"
+author: "GarnerCorp"
+branding:
+  icon: "bookmark"
+  color: "yellow"
+inputs:
+  repositories:
+    description: "Repositories"
+    required: true
+  source-tag:
+    description: "Source tag"
+    required: true
+  new-tags:
+    description: "For each repository in repositories, for each new-tag in new-tags, add new-tag to the repository with tag source-tag"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.repositories || !inputs.source-tag || !inputs.new-tags }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+      run: |
+        "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
+
+    - name: Add google registries
+      shell: bash
+      env:
+        registries: >-
+          ${{ inputs.repositories }}
+      run: |
+        : Configure docker gcloud credential helpers if they are not already configured
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
+
+    - name: Check for crane
+      id: crane
+      shell: bash
+      run: |
+        : Check for crane
+        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
+          echo "needed=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install crane
+      if: ${{ steps.crane.outputs.needed }}
+      id: install-crane
+      uses: check-spelling/gh-program-downloader@v0.0.1
+      with:
+        repository: google/go-containerregistry
+        file-re: ^crane
+        destination: "${{ github.workspace }}/../crane"
+
+    - name: Add tags to images
+      shell: bash
+      env:
+        repositories: ${{ inputs.repositories }}
+        source: ${{ inputs.source-tag }}
+        tags: ${{ inputs.new-tags }}
+      run: |
+        : Copy images
+        (
+          echo '# Tagged images'
+          echo
+        ) >> "$GITHUB_STEP_SUMMARY"
+        for repository in $repositories; do
+          for tag in $tags; do
+            $GITHUB_WORKSPACE/../crane copy "$repository:$source" "$repository:$tag"
+            echo "* [$repository:$tag](https://$repository:$tag)" >> "$GITHUB_STEP_SUMMARY"
+          done
+        done
