@@ -83,30 +83,12 @@ runs:
     - name: Add google registries
       shell: bash
       env:
-        images: >-
+        registries: >-
           ${{ inputs.container-registry && inputs.container-project && format('{0}/{1}', inputs.container-registry, inputs.container-project) || ''}}
           ${{ inputs.additional-image-tags }}
       run: |
         : Configure docker gcloud credential helpers if they are not already configured
-        registries=$(perl -e '
-          my @images = split /\s+/, $ENV{images};
-          my %repos;
-          for my $image (@images) {
-            $image =~ s</.*><>;
-            next unless $image =~ /\bgcr\.io$|pkg\.dev$/;
-            $repos{$image} = 1;
-          }
-          print join " ", sort keys %repos;
-        ')
-        if [ -n "$registries" ]; then
-          echo ::group::Configure docker gcloud credential helpers
-          for registry in $registries; do
-            if [ "$(jq -r '.credHelpers["$registry"] // empty' ~/.docker/config.json)" = '' ] ; then
-              gcloud auth configure-docker "$registry"
-            fi
-          done
-          echo "::end"group::
-        fi
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
     - name: Build and Push Image
       id: build-and-push-image

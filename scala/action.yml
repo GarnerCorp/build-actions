@@ -110,15 +110,7 @@ runs:
       if: ${{ env.registries }}
       run: |
         : Configure docker gcloud credential helpers if they are not already configured
-        if [ -n "$registries" ]; then
-          echo ::group::Configure docker gcloud credential helpers
-          for registry in $registries; do
-            if [ "$(jq -r '.credHelpers["$registry"] // empty' ~/.docker/config.json)" = '' ] ; then
-              gcloud auth configure-docker "$registry"
-            fi
-          done
-          echo "::end"group::
-        fi
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
     - name: Install sbt
       if: ${{ env.ACT }}

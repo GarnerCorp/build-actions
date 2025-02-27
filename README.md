@@ -14,3 +14,4 @@ Actions for building workflows to build/publish images
 - [bump-version](bump-version/action.yml)
 - [kind-logs](kind-logs/action.yml)
 - [docker-logs](docker-logs/action.yml)
+- [configure-google-docker](configure-google-docker/action.yml)
