@@ -15,3 +15,4 @@ Actions for building workflows to build/publish images
 - [kind-logs](kind-logs/action.yml)
 - [docker-logs](docker-logs/action.yml)
 - [configure-google-docker](configure-google-docker/action.yml)
+- [tag-images](tag-images/action.yml)
