@@ -6,10 +6,10 @@ branding:
   color: "blue"
 inputs:
   container-registries:
-    description: "Container Registries"
+    description: "Container Registries (space delimited)"
     required: false
   images:
-    description: "Image urls"
+    description: "Image URLs (space delimited)"
     required: false
 
 runs:

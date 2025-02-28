@@ -47,14 +47,14 @@ inputs:
     default: ""
     required: false
   extra-sbt-args:
-    description: "Extra arguments for sbt passed to build script via environment variable: EXTRA_SBT_ARGS"
+    description: "Extra arguments for sbt passed to build script via environment variable: EXTRA_SBT_ARGS (space delimited)"
     default: ""
     required: false
   build-script:
     description: "Script used to build scala project"
     required: false
   build-script-args:
-    description: "Required args for build-script"
+    description: "Required args for build-script (space delimited)"
     required: false
   google-credentials-json:
     description: "Google Service Account JSON file"
@@ -66,7 +66,7 @@ inputs:
     description: "Path within container registry for team"
     required: false
   artifact-registries:
-    description: "Google Artifact Registries that may need docker access"
+    description: "Google Artifact Registries that may need docker access (space delimited)"
     required: false
   skip-checkout:
     description: "Use files from working directory instead of checking out"
