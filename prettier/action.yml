@@ -83,7 +83,7 @@ inputs:
     required: false
     default: "true"
   update-git_blame_ignore_revs:
-    description: Where to update `.git_blame_ignore_revs`
+    description: Whether to update `.git_blame_ignore_revs`
     required: false
     default: "false"
   debug:
