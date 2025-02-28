@@ -17,21 +17,21 @@ inputs:
     required: false
     default: "false"
   commit-options:
-    description: Commit options
+    description: Commit options (space delimited)
     required: false
   push-options:
-    description: Git push options
+    description: Git push options (space delimited)
     required: false
   file-pattern:
     description: File pattern used for `git add`, can't be used with only-changed!
     required: false
     default: "*"
   prettier-options:
-    description: Options for the `prettier` command
+    description: Options for the `prettier` command (space delimited)
     required: false
     default: "--write"
   file-extensions:
-    description: If not specified, prettier will be interrogated for supported extensions
+    description: If not specified, prettier will be interrogated for supported extensions (space delimited)
     required: false
     default: ""
   check-paths:
@@ -55,7 +55,7 @@ inputs:
     required: false
     default: "false"
   prettier-plugins:
-    description: Install Prettier plugins, i.e. `@prettier/plugin-php @prettier/plugin-other`
+    description: Install Prettier plugins, i.e. `@prettier/plugin-php @prettier/plugin-other` (space delimited)
     required: false
     default: ""
   github-token:

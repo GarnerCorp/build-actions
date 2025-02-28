@@ -6,13 +6,13 @@ branding:
   color: "yellow"
 inputs:
   repositories:
-    description: "Repositories"
+    description: "Repositories (space delimited)"
     required: true
   source-tag:
     description: "Source tag"
     required: true
   new-tags:
-    description: "For each repository in repositories, for each new-tag in new-tags, add new-tag to the repository with tag source-tag"
+    description: "For each repository in repositories, for each new-tag in new-tags, add new-tag to the repository with tag source-tag (space delimited)"
     required: true
 
 runs:

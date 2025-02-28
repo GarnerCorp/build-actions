@@ -13,7 +13,7 @@ inputs:
     description: "Path within container registry for team"
     required: true
   platforms:
-    description: "The platforms for which to build the image"
+    description: "The platforms for which to build the image (comma delimited)"
     default: "linux/amd64,linux/arm64"
     required: false
   working-directory:
@@ -42,13 +42,13 @@ inputs:
     description: "Tag used for release candidates"
     required: false
   additional-image-tags:
-    description: "Copy image to these additional tags (possibly in other repositories)"
+    description: "Copy image to these additional tags (space delimited; possibly in other repositories)"
     required: false
   build-context:
     description: "The context for the docker"
     required: false
   build-args:
-    description: "A comma separated list of build arguments to pass as --build-arg flags to docker build"
+    description: "Build arguments to pass as --build-arg flags to docker build (comma delimited)"
     required: false
 outputs:
   image:
