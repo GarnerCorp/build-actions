@@ -55,6 +55,8 @@ fi
 git commit -m "$prefix$commitInfo
 
 $COMMIT_URL
+
+$COMMIT_MESSAGE_SUFFIX
 "
 
 git push origin HEAD ||
