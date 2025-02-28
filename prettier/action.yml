@@ -35,9 +35,9 @@ inputs:
     required: false
     default: ""
   check-paths:
-    description:
+    description: Specific glob/paths to check (space delimited). If specified it suppresses the files to check based on file-extensions feature
     required: false
-    default: "**"
+    default: ""
   dry:
     description: Run prettier in dry-run mode. Display which files are/aren't pretty and changes made by prettier in the GitHub job summary
     required: false

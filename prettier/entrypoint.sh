@@ -103,20 +103,28 @@ if [ -n "$INPUT_PRETTIER_PLUGINS" ]; then
 fi
 )
 
-check_paths=''
-if echo "$INPUT_PRETTIER_OPTIONS" | grep -v -q /; then
-  if [ -z "$INPUT_FILE_EXTENSIONS" ]; then
-    if ! command -v jq >/dev/null; then
-      apt-get update
-      apt-get install jq
+if [ -n "$INPUT_CHECK_PATHS" ]; then
+  check_paths=$(
+    for check_path in $INPUT_CHECK_PATHS; do
+      echo "'$check_path'"
+    done
+  )
+else
+  check_paths=''
+  if echo "$INPUT_PRETTIER_OPTIONS" | grep -v -q /; then
+    if [ -z "$INPUT_FILE_EXTENSIONS" ]; then
+      if ! command -v jq >/dev/null; then
+        apt-get update
+        apt-get install jq
+      fi
+      INPUT_FILE_EXTENSIONS=$(
+        prettier --support-info |
+        jq -r '.languages[].extensions[]' |
+        xargs
+      )
     fi
-    INPUT_FILE_EXTENSIONS=$(
-      prettier --support-info |
-      jq -r '.languages[].extensions[]' |
-      xargs
-    )
+    check_paths=$($GITHUB_ACTION_PATH/shell-glob-files.pl)
   fi
-  check_paths=$($GITHUB_ACTION_PATH/shell-glob-files.pl)
 fi
 
 git_blame_ignore_revs_log=$(mktemp)
