@@ -44,6 +44,9 @@ inputs:
     description: Default branch
     default: master
     required: false
+  commit-message-suffix:
+    description: Text to append to commit message
+    required: false
 
 runs:
   using: 'composite'
@@ -87,6 +90,7 @@ runs:
         REPO_URL: ${{ github.event.repository.html_url }}
         BRANCH: ${{ github.head_ref || github.ref_name }}
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        COMMIT_MESSAGE_SUFFIX: ${{ inputs.commit-message-suffix }}
       working-directory: _deploy/${{ inputs.working-directory }}
       run: |
         "$GITHUB_ACTION_PATH/commit-latest-versions.sh"
