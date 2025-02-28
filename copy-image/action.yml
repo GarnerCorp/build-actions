@@ -1,0 +1,68 @@
+name: "Copy Image"
+description: "Copy image to other repositories"
+author: "GarnerCorp"
+branding:
+  icon: "copy"
+  color: "green"
+inputs:
+  source:
+    description: "Source image"
+    required: true
+  destinations:
+    description: "Destination image names (space delimited)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.source || !inputs.destinations }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+      run: |
+        "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
+
+    - name: Add google registries
+      shell: bash
+      env:
+        registries: >-
+          ${{ inputs.source }}
+          ${{ inputs.destinations }}
+      run: |
+        : Configure docker gcloud credential helpers if they are not already configured
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
+
+    - name: Check for crane
+      id: crane
+      shell: bash
+      run: |
+        : Check for crane
+        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
+          echo "needed=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install crane
+      if: ${{ steps.crane.outputs.needed }}
+      id: install-crane
+      uses: check-spelling/gh-program-downloader@v0.0.1
+      with:
+        repository: google/go-containerregistry
+        file-re: ^crane
+        destination: "${{ github.workspace }}/../crane"
+
+    - name: Copy image
+      shell: bash
+      env:
+        source: ${{ inputs.source }}
+        destinations: ${{ inputs.destinations }}
+      run: |
+        : Copy images
+        (
+          echo '# Copied images'
+          echo
+        ) >> "$GITHUB_STEP_SUMMARY"
+        for destination in $destinations; do
+          $GITHUB_WORKSPACE/../crane copy "$source" "$destination"
+          echo "* [$destination](https://$destination)" >> "$GITHUB_STEP_SUMMARY"
+        done

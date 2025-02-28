@@ -16,3 +16,4 @@ Actions for building workflows to build/publish images
 - [docker-logs](docker-logs/action.yml)
 - [configure-google-docker](configure-google-docker/action.yml)
 - [tag-images](tag-images/action.yml)
+- [copy-image](copy-image/action.yml)
