@@ -1,0 +1,78 @@
+name: "Set up Google Kubernetes Pull Secrets"
+description: "Create Kubernetes Pull Secrets for Google Repositories"
+author: "GarnerCorp"
+branding:
+  icon: "lock"
+  color: "blue"
+inputs:
+  images:
+    description: "Images hosted by google (space delimited)"
+    default: ""
+    required: true
+  token-file:
+    description: "File containing Google Auth Token"
+    required: true
+  namespace:
+    description: "Kubernetes namespace for credentials"
+    default: default
+    required: false
+
+outputs:
+  secret-names:
+    description: "List of created secrets"
+    value: ${{ steps.create-secrets.outputs.secrets }}
+  script:
+    description: "Script that will replace `IMAGE_PULL_CONFIG` with the secret associated with a matching `image: REGISTRY`"
+    value: ${{ steps.create-secrets.outputs.script }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.images || !inputs.token-file }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+
+    - name: Build and Push Image
+      id: create-secrets
+      shell: bash
+      env:
+        images: ${{ inputs.images }}
+        token_file: ${{ inputs.token-file }}
+        namespace: ${{ inputs.namespace }}
+      run: |
+        : Configure Kubernetes secrets
+        registries=$(perl -e '
+          my @images = split /\s+/, $ENV{images};
+          my %repos;
+          for my $image (@images) {
+            $image =~ s</.*><>;
+            next unless $image =~ /\bgcr\.io$|pkg\.dev$/;
+            $repos{$image} = 1;
+          }
+          print join " ", sort keys %repos;
+        ')
+        token=$(cat "$token_file")
+        echo "::add-mask::$token"
+        secrets=$(mktemp)
+        script=$(mktemp)
+        echo '#!/bin/sh' >> "$script"
+        chmod +x "$script"
+        for registry in $registries; do
+        (
+          export secret="$(echo "$registry" | tr '.' '-')"
+          kubectl create secret docker-registry "$secret" --docker-server $registry -n "$namespace" \
+            --docker-username oauth2accesstoken \
+            --docker-email not@val.id \
+            --docker-password="$token"
+          "$GITHUB_ACTION_PATH/maybe-fill-in-pull-secret.pl" "$registry" "$secret" >> "$script"
+          echo "$secret" >> "$secrets"
+        )
+        done
+        (
+          echo "secrets=$(cat "$secrets"|xargs)"
+          echo "script=$script"
+        ) >> "$GITHUB_OUTPUT"
