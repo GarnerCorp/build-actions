@@ -50,8 +50,10 @@ if [ "$(uname)" = "Linux" ]; then
   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 fi
 
+echo ::group::Use buildx-multiarch
 docker buildx use buildx-multiarch ||
   docker buildx create --driver docker-container --use multiarch --name buildx-multiarch
+echo ::end"group"
 
 if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
