@@ -269,7 +269,7 @@ else
   if [ "$INPUT_COMMIT_DESCRIPTION" != "" ]; then
     git commit -n -m "$INPUT_COMMIT_MESSAGE" -m "$INPUT_COMMIT_DESCRIPTION" ${INPUT_COMMIT_OPTIONS:+$INPUT_COMMIT_OPTIONS} || commit_canary=
   else
-    git commit -n -m "$INPUT_COMMIT_MESSAGE" ${INPUT_COMMIT_OPTIONS:+"INPUT_COMMIT_OPTIONS} || commit_canary=
+    git commit -n -m "$INPUT_COMMIT_MESSAGE" ${INPUT_COMMIT_OPTIONS:+$INPUT_COMMIT_OPTIONS} || commit_canary=
   fi
 
   dry_run_check
