@@ -35,7 +35,7 @@ fi
   if [ -n "$SHA_FORMATTER" ]; then
     eval $SHA_FORMATTER
   else
-    echo -n "$HEAD_SHA$SHA_SUFFIX"
+    echo -n "$SHA_PREFIX$HEAD_SHA$SHA_SUFFIX"
   fi
 ) > "$VERSION_FILE"
 
