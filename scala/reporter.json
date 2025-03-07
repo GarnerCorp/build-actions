@@ -16,14 +16,8 @@
       "severity": "error",
       "pattern": [
         {
-          "regexp" : "- (.*) \\*\\*\\* FAILED \\*\\*\\*",
+          "regexp" : "- (.* \\*\\*\\* FAILED \\*\\*\\*)",
           "message": 1
-        },
-        {
-          "regexp" : "\\((\\w+\\.scala):(\\d+)\\)$",
-          "file": 1,
-          "line": 2,
-          "loop": true
         }
       ]
     }
