@@ -10,6 +10,22 @@
           "message": 2
         }
       ]
+    },
+    {
+      "owner": "scala-test",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp" : "- (.*) \\*\\*\\* FAILED \\*\\*\\*",
+          "message": 1
+        },
+        {
+          "regexp" : "\\((\\w+\\.scala):(\\d+)\\)$",
+          "file": 1,
+          "line": 2,
+          "loop": true
+        }
+      ]
     }
   ]
 }
