@@ -30,6 +30,9 @@ inputs:
   project-pretty:
     description: Project name for commit message
     required: false
+  sha-prefix:
+    description: Prefix for image tag
+    required: false
   sha-suffix:
     description: Suffix for image tag
     required: false
@@ -83,6 +86,7 @@ runs:
         GIT_MAIL: ${{ inputs.mail }}
         PROJECT_PRETTY: ${{ inputs.project-pretty }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        SHA_PREFIX: ${{ inputs.sha-prefix }}
         SHA_SUFFIX: ${{ inputs.sha-suffix }}
         SHA_FORMATTER: ${{ inputs.sha-formatter }}
         VERSION_FILE: ${{ inputs.version-file }}
