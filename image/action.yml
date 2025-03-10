@@ -7,8 +7,7 @@ branding:
 inputs:
   container-registry:
     description: "Container Registry"
-    default: "gcr.io"
-    required: false
+    required: true
   container-project:
     description: "Path within container registry for team"
     required: true
