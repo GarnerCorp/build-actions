@@ -45,9 +45,12 @@ PUSH_CONTEXT=${REPOSITORY}/${IMAGE}:${RC:-${TAG}${BRANCH}}
 
 docker context create multiarch 2> /dev/null || true
 
-
 if [ "$(uname)" = "Linux" ]; then
-  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  if [ "$GITHUB_REPOSITORY_OWNER" == GarnerCorp ]; then
+    upstream='us-central1-docker.pkg.dev/helical-crowbar-220917/upstream/'
+    registries="$upstream" "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
+  fi
+  docker run --rm --privileged ${upstream}multiarch/qemu-user-static --reset -p yes
 fi
 
 echo ::group::Use buildx-multiarch
