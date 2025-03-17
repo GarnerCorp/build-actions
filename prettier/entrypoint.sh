@@ -52,15 +52,30 @@ _amend_commit() {
   [ "$INPUT_SAME_COMMIT" == 'true' ]
 }
 
+minimum_backticks() {
+  perl -e '
+    $length=3;
+    while (<>) {
+      next unless m/^\s*(`{3,}) *$/;
+      $new_length = length $1;
+      $length = $new_length if $new_length > $length
+    };
+    print "`"x($length+1);
+  ' < "$1"
+}
+
 summarize_changes() {
+  changes=$(mktemp)
+  git format-patch --stdout $GITHUB_SHA..HEAD > "$changes"
   (
-    (
-      echo "## ${1:-Changes}"
-      echo '```sh'
-      git format-patch --stdout $GITHUB_SHA..HEAD | tee /dev/stderr
-      echo '```'
-    ) >> "$GITHUB_STEP_SUMMARY"
-  ) 2>&1
+    echo "## ${1:-Changes}"
+    backticks=$(minimum_backticks "$changes")
+    echo "${backticks}sh"
+    cat "$changes"
+    echo "${backticks}"
+  ) >> "$GITHUB_STEP_SUMMARY"
+  cat "$changes"
+  rm -f "$changes"
 }
 
 echo "# [Prettier](https://prettier.io/)" >> "$GITHUB_STEP_SUMMARY"
@@ -161,9 +176,10 @@ dump_log() {
     title="${2:-$file}"
     (
       echo "### $title"
-      echo '```sh'
+      backticks=$(minimum_backticks "$file")
+      echo "${backticks}sh"
       cat "$file"
-      echo '```'
+      echo "${backticks}"
       echo
     ) >> "$GITHUB_STEP_SUMMARY"
     cat "$file"
