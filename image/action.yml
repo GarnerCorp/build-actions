@@ -118,7 +118,7 @@ runs:
     - name: Install crane
       if: ${{ steps.crane.outputs.needed }}
       id: install-crane
-      uses: check-spelling/gh-program-downloader@v0.0.1
+      uses: check-spelling/gh-program-downloader@v0.0.3
       with:
         repository: google/go-containerregistry
         file-re: ^crane
