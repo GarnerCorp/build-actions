@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-./scripts/sbt-ci.sh "compile ; test:compile ; unusedCompileDependenciesTest ; undeclaredCompileDependenciesTest ; test:unusedCompileDependenciesTest ; test:undeclaredCompileDependenciesTest ; test ; dist ; $EXTRA_SBT_ARGS"
+./scripts/sbt-ci.sh "compile ; Test/compile ; unusedCompileDependenciesTest ; undeclaredCompileDependenciesTest ; Test/unusedCompileDependenciesTest ; Test/undeclaredCompileDependenciesTest ; test ; dist ; $EXTRA_SBT_ARGS"
 
 copy_jmx_agent() {
   cp jmx_prometheus_javaagent-*.jar "$1"/
