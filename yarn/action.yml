@@ -46,6 +46,10 @@ inputs:
     description: "Command to run tests"
     default: "yarn test"
     required: false
+  yarn-lint-command:
+    description: "Command to run ESLint"
+    default: "yarn lint"
+    required: false
   yarn-build-directory:
     description: "Directory containing output from yarn-build-command (relative to working-directory)"
     default: "dist"
@@ -211,6 +215,11 @@ runs:
       if: steps.test-searcher.outputs.has-tests
       shell: bash
       run: ${{ inputs.yarn-test-command }}
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Lint
+      shell: bash
+      run: ${{ inputs.yarn-lint-command }}
       working-directory: ${{ inputs.working-directory }}
 
     - name: "Google Auth"
