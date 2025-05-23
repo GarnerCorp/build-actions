@@ -125,11 +125,18 @@ runs:
       shell: bash
       run: |
         : Update the version in the file
+        case "$VERSION_TYPE" in
+          'node')
+            export VERSION_PREFIX='"version": "';;
+          'sbt')
+            export VERSION_PREFIX='ThisBuild / version := "';;
+          *)
+            export VERSION_PREFIX='';;
+        esac
+
         perl -pi -e 's/$ENV{VERSION_PREFIX}$ENV{OLD_VERSION}/$ENV{VERSION_PREFIX}$ENV{VERSION}/g' "$VERSION_FILE"
       env:
-        VERSION_PREFIX_NODE: '"version": "'
-        VERSION_PREFIX_SBT: 'ThisBuild / version := "'
-        VERSION_PREFIX: ${{ inputs.version-type == 'node' && env.VERSION_PREFIX_NODE || inputs.version-type == 'sbt' && env.VERSION_PREFIX_SBT || '' }}
+        VERSION_TYPE: ${{ inputs.version-type }}
         VERSION: ${{ steps.bump.outputs.version }}
         OLD_VERSION: ${{ steps.bump.outputs.old-version }}
         VERSION_FILE: ${{ inputs.version-file-path }}
