@@ -1,0 +1,86 @@
+name: 'Get Image and Run Command'
+description: 'Get an image and run a command (that presumably relies on the image)'
+author: 'GarnerCorp'
+branding:
+  icon: 'codesandbox'
+  color: 'blue'
+inputs:
+  image:
+    description: "An image reference to be pulled by docker"
+    required: true
+    default: "busybox"
+  workload-identity-provider:
+    description: "The workload identity provider to use for pulling images (requires service-account)"
+    required: false
+  service-account:
+    description: "The service account to use for pulling images (requires workload-identity-provider)"
+    required: false
+  command:
+    description: "The command to run"
+    required: false
+  checkout:
+    description: "Whether or not to check out the repository"
+    required: false
+    default: "true"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.image || !inputs.workload-identity-provider != !inputs.service-account }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+        CODEPENDENT: '[ [ "workload-identity-provider", "service-account" ] ]'
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+
+    - name: Checkout
+      if: ${{ inputs.checkout == 'true' }}
+      uses: actions/checkout@v4
+
+    - name: Set up google docker credentials
+      if: ${{ inputs.workload-identity-provider && inputs.service-account }}
+      uses: GarnerCorp/build-actions/configure-google-docker@main
+      env:
+        IMAGE: ${{ inputs.image }}
+        WORKLOAD_IDENTITY_PROVIDER: ${{ inputs.workload-identity-provider }}
+        SERVICE_ACCOUNT: ${{ inputs.service-account }}
+      with:
+        images: ${{ env.IMAGE }}
+        workload-identity-provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+        service-account: ${{ env.SERVICE_ACCOUNT }}
+
+    - name: Run command
+      id: run-command
+      env:
+        IMAGE: ${{ inputs.image }}
+        CMD: ${{ inputs.command }}
+      shell: bash
+      run: |
+        : 'Run command and report errors'
+        docker pull "$IMAGE"
+
+        stdout_file=$(mktemp)
+        stderr_file=$(mktemp)
+
+        summarize() {
+          (
+            echo "## $1"
+            echo
+            echo '```'
+            cat "$2"
+            echo '```'
+            echo
+          ) >> $GITHUB_STEP_SUMMARY
+        }
+
+        if bash -c "$CMD" > "$stdout_file" 2> "$stderr_file"; then
+          :
+        else
+          exit_code="$?"
+          summarize output $stdout_file
+          summarize error $stderr_file
+          echo 'Errors detected: See summary for error report'
+          exit "$exit_code"
+        fi

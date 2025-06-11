@@ -1,6 +1,7 @@
 accesstoken
 amd
 codependent
+codesandbox
 corepack
 cred
 debian
