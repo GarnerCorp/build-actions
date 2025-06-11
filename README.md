@@ -18,3 +18,4 @@ Actions for building workflows to build/publish images
 - [tag-images](tag-images/action.yml)
 - [copy-image](copy-image/action.yml)
 - [google-k8s-pull-secrets](google-k8s-pull-secrets/action.yml)
+- [get-image-and-run-command](get-image-and-run-command/action.yml)
