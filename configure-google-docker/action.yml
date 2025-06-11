@@ -11,10 +11,34 @@ inputs:
   images:
     description: "Image URLs (space delimited)"
     required: false
+  workload-identity-provider:
+    description: "The workload identity provider to use for docker (requires service-account)"
+    required: false
+  service-account:
+    description: "The service account to use for docker (requires workload-identity-provider)"
+    required: false
+  
 
 runs:
   using: "composite"
   steps:
+    - name: Validate inputs
+      if: ${{ !inputs.workload-identity-provider != !inputs.service-account }}
+      shell: bash
+      env:
+        INPUTS: ${{ toJSON(inputs) }}
+        CODEPENDENT: '[ [ "workload-identity-provider", "service-account" ] ]'
+      run: |
+        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+
+    - name: Authenticate to Google Cloud
+      if: ${{ inputs.workload-identity-provider && inputs.service-account }}
+      id: auth-work-identity
+      uses: "google-github-actions/auth@v2"
+      with:
+        workload_identity_provider: ${{ inputs.workload-identity-provider }}
+        service_account: ${{ inputs.service-account }}
+    
     - name: Add google registries
       shell: bash
       if: ${{ inputs.container-registries || inputs.images }}
