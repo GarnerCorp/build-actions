@@ -19,9 +19,8 @@ inputs:
     description: "The command to run"
     required: false
   checkout:
-    description: "Whether or not to check out the repository"
+    description: "Whether to check out the repository"
     required: false
-    default: "true"
 
 runs:
   using: 'composite'
