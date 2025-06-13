@@ -69,7 +69,7 @@ runs:
           :
         else
            exit_code="$?"
-           if [ -z "$CHECKOUT_OVERWRITE" ]; then
+           if [ -n "$CHECKOUT_OVERWRITE" ]; then
              (
                 echo "# docker pull '$IMAGE' failed"
                 echo '`inputs.checkout` was set, but a step before this action used google-github-actions/auth'
