@@ -26,11 +26,11 @@ runs:
   using: 'composite'
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.image || !inputs.workload-identity-provider != !inputs.service-account }}
+      if: ${{ !inputs.image || !inputs.workload-identity-provider != !inputs.service-account || (inputs.checkout == 'true' && !inputs.service-account) }}
       shell: bash
       env:
         INPUTS: ${{ toJSON(inputs) }}
-        CODEPENDENT: '[ [ "workload-identity-provider", "service-account" ] ]'
+        CODEPENDENT: '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ] ]'
       run: |
         "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
 
