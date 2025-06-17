@@ -95,6 +95,11 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
+    - name: Add matchers
+      shell: bash
+      run: |
+        $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
+
     - name: Enable corepack
       shell: bash
       run: corepack enable
@@ -106,7 +111,6 @@ runs:
       env:
         yarn_version: ${{ inputs.yarn-version }}
       run: |
-        $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
         if [ -n "$yarn_version" ]; then
           yarn set version "$yarn_version"
         fi
