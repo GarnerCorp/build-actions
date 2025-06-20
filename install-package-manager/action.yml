@@ -1,0 +1,52 @@
+name: 'Install package manager'
+description: 'Install package manager (similar to what corepack does; but use a GitHub cached version if available)'
+author: 'GarnerCorp'
+branding:
+  icon: 'archive'
+  color: 'black'
+inputs:
+  cache-repository:
+    description: "GitHub repository with cached packages as tags"
+    required: false
+  working-directory:
+    description: "Working directory"
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CACHE_DIRECTORY: .cache/node/corepack/v1
+        CACHE_REPOSITORY: ${{ inputs.cache-repository || format('{0}/../{1}', github.action_repository || github.repository, 'corepack-pkg-manager-cache') }}
+      run: |
+        : Get package manager
+        if [ -n "$TRACE" ]; then
+          set -x
+        fi
+        npm install -g corepack
+        versioned_package_manager=$(jq -r '.packageManager' package.json)
+        if [ -n "$versioned_package_manager" ]; then
+          cache_directory=$(
+            cd;
+            mkdir -p "$CACHE_DIRECTORY"
+            cd "$CACHE_DIRECTORY"
+            pwd
+          )
+          (
+            cd $(mktemp -d)
+            url="https://github.com/$CACHE_REPOSITORY/archive/refs/tags/${versioned_package_manager}.tar.gz"
+            if curl -s -S -f -L -o cached.tar.gz "$url"; then
+              echo "Downloaded package manager from $url"
+              tar zxf cached.tar.gz
+              rm cached.tar.gz
+              cd */
+              rsync -a * "$cache_directory"
+            else
+              echo "::notice title=Install package manager::could not download $url"
+            fi
+          )
+        fi
+        package_manager=${versioned_package_manager%@*}
+        "$package_manager" install
