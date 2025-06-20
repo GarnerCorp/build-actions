@@ -15,7 +15,27 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - shell: bash
+
+    - name: Check for jq
+      id: jq
+      shell: bash
+      run: |
+        : Check for jq
+        if ! which jq; then
+          echo "needed=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install jq
+      if: ${{ steps.jq.outputs.needed }}
+      id: install-jq
+      uses: check-spelling/gh-program-downloader@c6f28a25b2cbfd91693af602ed712328f4e97552 # v0.0.4 + 1 commit
+      with:
+        repository: jqlang/jq
+        destination: ../bin/jq
+        add-to-path: 1
+
+    - name: Install package manager
+      shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         CACHE_DIRECTORY: .cache/node/corepack/v1

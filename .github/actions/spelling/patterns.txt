@@ -8,6 +8,11 @@
 
 # Automatically suggested patterns
 # hit-count: 1 file-count: 1
+# hex runs
+\b[0-9a-fA-F]{16,}\b
+
+# Automatically suggested patterns
+# hit-count: 1 file-count: 1
 # tar arguments
 \b(?:\\n|)g?tar(?:\.exe|)(?:(?:\s+--[-a-zA-Z]+|\s+-[a-zA-Z]+|\s[ABGJMOPRSUWZacdfh-pr-xz]+\b)(?:=[^ ]*|))+
 
