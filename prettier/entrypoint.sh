@@ -104,6 +104,8 @@ case $INPUT_PRETTIER_VERSION in
     ;;
 esac
 
+echo "prettier version: $(npm run prettier --version)"
+
 # Install plugins
 if [ -n "$INPUT_PRETTIER_PLUGINS" ]; then
   for plugin in $INPUT_PRETTIER_PLUGINS; do
