@@ -21,7 +21,7 @@ inputs:
     required: false
   node-version:
     description: "Node version to use"
-    default: "22"
+    default: "24"
     required: false
   yarn-version:
     description: "Yarn version to use, if not specified, Corepack will use the `packageManager` property defined in package.json"
