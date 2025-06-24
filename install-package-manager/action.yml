@@ -62,7 +62,7 @@ runs:
               tar zxf cached.tar.gz
               rm cached.tar.gz
               cd */
-              rsync -a * "$cache_directory"
+              mv * "$cache_directory"
             else
               echo "::notice title=Install package manager::could not download $url"
             fi
