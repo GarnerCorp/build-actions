@@ -45,7 +45,7 @@ inputs:
     default: latestVersion
   default-branch:
     description: Default branch
-    default: master
+    default: main
     required: false
   commit-message-suffix:
     description: Text to append to commit message

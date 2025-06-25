@@ -64,7 +64,7 @@ inputs:
     required: false
   publishing-branch:
     description: "Branch to publish registry off of"
-    default: "master"
+    default: "main"
     required: false
   publishing-directory:
     description: "Directory to publish to npm-registry"
