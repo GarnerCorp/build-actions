@@ -30,7 +30,7 @@ inputs:
     required: false
   default-branch:
     description: Default branch
-    default: master
+    default: main
     required: false
   needs-json:
     description: "Jobs to check"
