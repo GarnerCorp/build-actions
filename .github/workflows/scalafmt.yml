@@ -21,6 +21,6 @@ jobs:
           repository: garnercorp/.github
           path: garnercorp.github
       - name: Checking your scala code formatting
-        uses: GarnerCorp/scalafmt-ci@master
+        uses: GarnerCorp/scalafmt-ci@main
         with:
           args: "--list --test"
