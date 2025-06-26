@@ -11,6 +11,10 @@ inputs:
   working-directory:
     description: "Working directory"
     required: false
+  install-dependencies:
+    description: "Whether to install dependencies for the project"
+    default: true
+    required: false
 
 runs:
   using: 'composite'
@@ -40,6 +44,7 @@ runs:
       env:
         CACHE_DIRECTORY: .cache/node/corepack/v1
         CACHE_REPOSITORY: ${{ inputs.cache-repository || format('{0}/../{1}', github.action_repository || github.repository, 'corepack-pkg-manager-cache') }}
+        INSTALL_DEPENDENCIES: ${{ inputs.install-dependencies && fromJSON(inputs.install-dependencies) && 1 || '' }}
       run: |
         : Get package manager
         if [ -n "$TRACE" ]; then
@@ -68,5 +73,10 @@ runs:
             fi
           )
         fi
+
         package_manager=${versioned_package_manager%@*}
-        "$package_manager" install
+        "$package_manager" --version
+
+        if [ -n "$INSTALL_DEPENDENCIES" ]; then
+          "$package_manager" install
+        fi
