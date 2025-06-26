@@ -23,9 +23,6 @@ inputs:
     description: "Node version to use"
     default: "24"
     required: false
-  yarn-version:
-    description: "Yarn version to use, if not specified, Corepack will use the `packageManager` property defined in package.json"
-    required: false
   working-directory:
     description: "Directory containing package.json"
     default: "."
@@ -100,34 +97,29 @@ runs:
       run: |
         $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
 
-    - name: Enable corepack
-      shell: bash
-      run: corepack enable
-
-    - name: Set Yarn version
-      shell: bash
-      if: inputs.yarn-version
-      working-directory: ${{ inputs.working-directory }}
-      env:
-        yarn_version: ${{ inputs.yarn-version }}
-      run: |
-        if [ -n "$yarn_version" ]; then
-          yarn set version "$yarn_version"
-        fi
-
-    - name: Show yarn version
-      run: yarn --version
-      shell: bash
-      working-directory: ${{ inputs.working-directory }}
-
     - name: Validate Yarn version
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        if yarn --version | grep -q '^1\.'; then
-          echo "::error ::Yarn Classic (1.x) is not supported. Please upgrade to Yarn Berry."
+        : Validate yarn version
+        versioned_package_manager=$(jq -r '.packageManager // empty' 'package.json')
+        package_manager=${versioned_package_manager%@*}
+        package_manager_version=${versioned_package_manager#*@}
+        
+        if [ -z "$versioned_package_manager" ]; then
+          echo "::error ::Missing \`packageManager\` field in \`package.json\`. Please add it and try again."
           exit 1
         fi
+
+        if [ "$package_manager" != 'yarn' ] || [[ "$package_manager_version" =~ ^1 ]]; then
+          echo "::error ::This action only supports compatible versions of \`yarn\`. Please switch to \`yarn@2.x.x\` and try again."
+          exit 1
+        fi
+
+    - name: Install package manager
+      uses: GarnerCorp/build-actions/install-package-manager@main
+      with:
+        install-dependencies: false
 
     - name: Get yarn cache directory path
       working-directory: ${{ inputs.working-directory }}
