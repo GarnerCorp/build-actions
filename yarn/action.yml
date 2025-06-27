@@ -120,6 +120,7 @@ runs:
       uses: GarnerCorp/build-actions/install-package-manager@main
       with:
         install-dependencies: false
+        working-directory: ${{ inputs.working-directory }}
 
     - name: Get yarn cache directory path
       working-directory: ${{ inputs.working-directory }}
