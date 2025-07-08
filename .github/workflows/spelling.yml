@@ -10,6 +10,7 @@ on:
 jobs:
   spelling:
     name: Check Spelling
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
@@ -45,6 +46,7 @@ jobs:
   comment:
     name: Report
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     needs: spelling
     permissions:
       contents: write
@@ -61,6 +63,7 @@ jobs:
 
   update:
     name: Update PR
+    timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
