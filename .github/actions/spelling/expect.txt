@@ -19,10 +19,12 @@ noreply
 npmjs
 OLDIFS
 OPTARG
+playright
 sbt
 scalafmt
 scalasbt
 scoverage
+slackapi
 stefanzweifel
 temurin
 tojson
