@@ -1,0 +1,150 @@
+name: "Regression tests"
+description: "Run playright regression tests"
+author: "GarnerCorp"
+branding:
+  icon: "play-circle"
+  color: "blue"
+inputs:
+  domain:
+    description: "Domain"
+    required: true
+  system:
+    description: "System"
+    required: true
+  repository:
+    description: "Test repository"
+    required: true
+  repository-key:
+    description: "Test repository key"
+    required: true
+  auth0-username:
+    description: "Auth0 username"
+    required: true
+  auth0-password:
+    description: "Auth0 password"
+    required: true  
+  webhook:
+    description: "Slack web hook"
+    required: true
+  webhook-channel:
+    description: "Slack channel"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install GitHub CLI
+      uses: check-spelling/gh-program-downloader@prerelease
+      with:
+        repository: cli/cli
+        destination: ../bin/gh
+        file-re: bin/
+        add-to-path: 1
+
+    - name: Check deployment status
+      id: status
+      env:
+        DOMAIN: ${{ inputs.domain }}
+        SYSTEM: ${{ inputs.system }}
+      shell: bash
+      run: |
+        curl_with_retries() {
+          curl --show-error --fail --retry 10 --retry-delay 5 --retry-max-time 60 --retry-all-errors "$1" ||
+          echo "curl failed ($?) to load $1" >&2
+        }
+        BACKEND_SHA=$(curl_with_retries "https://api.$DOMAIN/version")
+        FRONTEND_SHA=$(curl_with_retries "https://$DOMAIN/version")
+
+        if [ -z "$BACKEND_SHA" ] || [ -z "$FRONTEND_SHA" ]; then
+          echo "::warning ::Both BACKEND_SHA ($BACKEND_SHA) and FRONTEND_SHA ($FRONTEND_SHA) need to be non-empty to report status"
+          echo "skip=1" >> "$GITHUB_ENV"
+          exit 0
+        fi
+
+        FRONTEND_SHORT_SHA=$(echo $FRONTEND_SHA | head -c 7)
+        STATUS_NODE_ID=$(gh api /repos/$GITHUB_REPOSITORY/commits/$BACKEND_SHA/status \
+          --jq ".statuses[] | select(.context == \"regression-tests-$FRONTEND_SHORT_SHA\" and (.state == \"success\" or .state == \"failure\")) | .node_id")
+        if [ -z "$STATUS_NODE_ID" ]; then
+          echo "The combination of backend commit $BACKEND_SHA and frontend commit $FRONTEND_SHA has not been tested yet"
+        else
+          echo "The combination of backend commit $BACKEND_SHA and frontend commit $FRONTEND_SHA was already tested"
+        fi
+        (
+          if [ "$GITHUB_RUN_ATTEMPT" -eq 1 ] && [ -n "$STATUS_NODE_ID" ]; then
+            echo "skip=1"
+          fi
+          echo "BACKEND_SHA=$BACKEND_SHA"
+          echo "FRONTEND_SHORT_SHA=$FRONTEND_SHORT_SHA"
+          echo "DOMAIN_LEAF=${DOMAIN%%.*}"
+          echo "${SYSTEM}_FRONTEND_URL=https://$DOMAIN/"
+        ) >> "$GITHUB_ENV"
+
+    - name: Create pending regression tests status on commit
+      if: ${{ !env.skip }}
+      shell: bash
+      run: |
+        gh api /repos/$GITHUB_REPOSITORY/statuses/$BACKEND_SHA \
+          -f state=pending \
+          -f target_url="$WORKFLOW_URL" \
+          -f description="Running regression tests" \
+          -f context="regression-tests-$FRONTEND_SHORT_SHA"
+
+    - uses: actions/checkout@v4
+      if: ${{ !env.skip }}
+      with:
+        repository: ${{ inputs.repository }}
+        ssh-key: "${{ inputs.repository-key }}"
+
+    - name: Install package manager and dependencies
+      if: ${{ !env.skip }}
+      uses: GarnerCorp/build-actions/install-package-manager@main
+
+    - name: Run regression tests
+      if: ${{ !env.skip }}
+      shell: bash
+      env:
+        AUTH0_USERNAME: "${{ inputs.auth0-username }}"
+        AUTH0_PASSWORD: "${{ inputs.auth0-password }}"
+      run: |
+        yarn test --project=regression --workers=1
+
+    - name: Create success regression tests status on commit
+      if: ${{ !env.skip && success() }}
+      shell: bash
+      run: |
+        gh api /repos/$GITHUB_REPOSITORY/statuses/$BACKEND_SHA \
+            -f state=success \
+            -f target_url="$WORKFLOW_URL" \
+            -f description="Regression tests passed" \
+            -f context="regression-tests-$FRONTEND_SHORT_SHA"
+
+    - name: Create failure regression tests status on commit
+      if: ${{ !env.skip && failure() }}
+      shell: bash
+      run: |
+        gh api /repos/$GITHUB_REPOSITORY/statuses/$BACKEND_SHA \
+            -f state=failure \
+            -f target_url="$WORKFLOW_URL" \
+            -f description="Regression tests failed" \
+            -f context="regression-tests-$FRONTEND_SHORT_SHA"
+
+    - name: Upload test results
+      if: ${{ !env.skip && failure() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: "test-results-${{ env.DOMAIN_LEAF }}"
+        path: test-results
+        retention-days: 3
+
+    - name: Notify Slack
+      if: ${{ !env.skip && (failure() || cancelled())}}
+      uses: slackapi/slack-github-action@v2.0.0
+      env:
+        SLACK_WEBHOOK_URL: "${{ inputs.webhook }}"
+      with:
+        webhook-type: webhook-trigger
+        payload: |
+          {
+            "channel": "${{ inputs.webhook-channel }}",
+            "message": "Regression tests for https://${{ inputs.domain }} failed\n${{ env.WORKFLOW_URL }}"
+          }
