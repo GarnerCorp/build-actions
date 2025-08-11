@@ -141,9 +141,9 @@ runs:
         if [ -s package.json ]; then
           prettier_version=$(jq -r '.devDependencies.prettier // ""' package.json)
           echo "prettier_version=$prettier_version" >> $GITHUB_OUTPUT
-        fi
-        if [ -z "$prettier_version" ]; then
-          echo '::warning title=Prettier version detection::Failed to detect prettier version. Using default.'
+          if [ -z "$prettier_version" ]; then
+            echo '::warning title=Prettier version detection::Failed to detect prettier version. Using default.'
+          fi
         fi
 
     - name: Prettify code!
