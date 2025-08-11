@@ -96,7 +96,7 @@ case $INPUT_WORKING_DIRECTORY in
 esac
 
 case $INPUT_PRETTIER_VERSION in
-  false)
+  ''|false)
     npm install -g --silent prettier
     ;;
   *)
