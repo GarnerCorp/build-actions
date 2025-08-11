@@ -5,6 +5,8 @@ codesandbox
 corepack
 cred
 debian
+ENAMETOOLONG
+ENOENT
 garnercorp
 gcloud
 gnupg

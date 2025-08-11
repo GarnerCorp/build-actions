@@ -104,6 +104,17 @@ case $INPUT_PRETTIER_VERSION in
     ;;
 esac
 
+patch_prettier() {
+  echo 'Patch prettier'
+  prettier="$(dirname "$(dirname "$(realpath "$(which prettier)")")")"
+  if [ -z "$prettier" ]; then
+    prettier='${NPM_PACKAGES}'
+  fi
+  perl -pi -e 'unless ($state) { next unless /async function lstatSafe/; $state = 1;} if ($state == 1) { next unless s/error.code !== "ENOENT"/error.code !== "ENOENT" && error.code !== "ENAMETOOLONG"/; $state = 2;}' $(find "$prettier" -type f -print0 |xargs -0 grep -l 'async function lstatSafe' | tee /dev/stderr)
+}
+
+patch_prettier
+
 echo "prettier version: $(npm run prettier --version)"
 
 # Install plugins
