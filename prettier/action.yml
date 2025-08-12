@@ -142,7 +142,7 @@ runs:
           prettier_version=$(jq -r '.devDependencies.prettier // ""' package.json)
           echo "prettier_version=$prettier_version" >> $GITHUB_OUTPUT
           if [ -z "$prettier_version" ]; then
-            echo '::warning title=Prettier version detection::Failed to detect prettier version. Using default.'
+            echo '::warning title=Prettier version detection::Failed to detect prettier version. Using latest.'
           fi
         fi
 
