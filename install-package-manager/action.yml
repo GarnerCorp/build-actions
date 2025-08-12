@@ -32,7 +32,7 @@ runs:
     - name: Install jq
       if: ${{ steps.jq.outputs.needed }}
       id: install-jq
-      uses: check-spelling/gh-program-downloader@c6f28a25b2cbfd91693af602ed712328f4e97552 # v0.0.4 + 1 commit
+      uses: check-spelling/gh-program-downloader@prerelease
       with:
         repository: jqlang/jq
         destination: ../bin/jq
