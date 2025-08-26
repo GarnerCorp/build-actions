@@ -11,36 +11,25 @@ inputs:
   system:
     description: "System"
     required: true
-  repository:
-    description: "Test repository"
-    required: true
-  repository-key:
-    description: "Test repository key"
-    required: true
   auth0-username:
     description: "Auth0 username"
     required: true
   auth0-password:
     description: "Auth0 password"
-    required: true  
+    required: true
   webhook:
     description: "Slack web hook"
     required: true
   webhook-channel:
     description: "Slack channel"
     required: true
+  playwright-key:
+    description: "Playwright test report server SSH key"
+    required: true
 
 runs:
   using: "composite"
   steps:
-    - name: Install GitHub CLI
-      uses: check-spelling/gh-program-downloader@prerelease
-      with:
-        repository: cli/cli
-        destination: ../bin/gh
-        file-re: bin/
-        add-to-path: 1
-
     - name: Check deployment status
       id: status
       env:
@@ -89,19 +78,10 @@ runs:
           -f description="Running regression tests" \
           -f context="regression-tests-$FRONTEND_SHORT_SHA"
 
-    - uses: actions/checkout@v4
-      if: ${{ !env.skip }}
-      with:
-        repository: ${{ inputs.repository }}
-        ssh-key: "${{ inputs.repository-key }}"
-
-    - name: Install package manager and dependencies
-      if: ${{ !env.skip }}
-      uses: GarnerCorp/build-actions/install-package-manager@main
-
     - name: Run regression tests
       if: ${{ !env.skip }}
       shell: bash
+      working-directory: /app
       env:
         AUTH0_USERNAME: "${{ inputs.auth0-username }}"
         AUTH0_PASSWORD: "${{ inputs.auth0-password }}"
@@ -128,12 +108,28 @@ runs:
             -f description="Regression tests failed" \
             -f context="regression-tests-$FRONTEND_SHORT_SHA"
 
+    - name: Upload Playwright HTML report
+      if: ${{ !env.skip }}
+      shell: bash
+      working-directory: /app
+      env:
+        PLAYWRIGHT_KEY: ${{ inputs.playwright-key }}
+        DEST_PATH: "/home/playwright/www/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
+        REPORT_URL: "https://playwright.garnercorp.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
+      run: |
+        echo "${{ env.PLAYWRIGHT_KEY }}" > playwright_key
+        chmod 600 playwright_key
+        SSH_OPTS='-i playwright_key -o StrictHostKeyChecking=no -o Port=7001'
+        ssh $SSH_OPTS playwright@fuji.garnercorp.com "mkdir -p \"${{ env.DEST_PATH }}\""
+        scp $SSH_OPTS -r playwright-report/* "playwright@fuji.garnercorp.com:${{ env.DEST_PATH }}"
+        echo "[Playwright test report for ${{ matrix.business }}](${{ env.REPORT_URL }})" >> "$GITHUB_STEP_SUMMARY"
+
     - name: Upload test results
       if: ${{ !env.skip && failure() }}
       uses: actions/upload-artifact@v4
       with:
         name: "test-results-${{ env.DOMAIN_LEAF }}"
-        path: test-results
+        path: /app/test-results
         retention-days: 3
 
     - name: Notify Slack
@@ -141,10 +137,11 @@ runs:
       uses: slackapi/slack-github-action@v2.0.0
       env:
         SLACK_WEBHOOK_URL: "${{ inputs.webhook }}"
+        REPORT_URL: "https://playwright.garnercorp.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
       with:
         webhook-type: webhook-trigger
         payload: |
           {
             "channel": "${{ inputs.webhook-channel }}",
-            "message": "Regression tests for https://${{ inputs.domain }} failed\n${{ env.WORKFLOW_URL }}"
+            "message": "Regression tests for https://${{ inputs.domain }} failed\n${{ env.WORKFLOW_URL }}\n${{ env.REPORT_URL }}"
           }
