@@ -26,6 +26,7 @@ sbt
 scalafmt
 scalasbt
 scoverage
+scp
 slackapi
 stefanzweifel
 temurin
