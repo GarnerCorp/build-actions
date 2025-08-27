@@ -136,12 +136,12 @@ runs:
       if: ${{ !env.skip && (failure() || cancelled())}}
       uses: slackapi/slack-github-action@v2.0.0
       env:
-        SLACK_WEBHOOK_URL: "${{ inputs.webhook }}"
         REPORT_URL: "https://playwright.garnercorp.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
       with:
+        webhook: "${{ inputs.webhook }}"
         webhook-type: webhook-trigger
         payload: |
-          {
-            "channel": "${{ inputs.webhook-channel }}",
-            "message": "Regression tests for https://${{ inputs.domain }} failed\n${{ env.WORKFLOW_URL }}\n${{ env.REPORT_URL }}"
-          }
+          channel: "${{ inputs.webhook-channel }}"
+          message: "Regression tests for https://${{ inputs.domain }} failed"
+          workflow_url: "${{ env.WORKFLOW_URL }}"
+          report_url: "${{ env.REPORT_URL }}"
