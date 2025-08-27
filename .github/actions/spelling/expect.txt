@@ -21,7 +21,6 @@ noreply
 npmjs
 OLDIFS
 OPTARG
-playright
 sbt
 scalafmt
 scalasbt

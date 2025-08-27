@@ -1,5 +1,5 @@
 name: "Regression tests"
-description: "Run playright regression tests"
+description: "Run playwright regression tests"
 author: "GarnerCorp"
 branding:
   icon: "play-circle"
