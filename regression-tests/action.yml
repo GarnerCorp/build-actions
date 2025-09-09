@@ -116,13 +116,14 @@ runs:
         PLAYWRIGHT_KEY: ${{ inputs.playwright-key }}
         DEST_PATH: "/home/playwright/www/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
         REPORT_URL: "https://playwright.garnercorp.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
+        BUSINESS: ${{ matrix.business }}
       run: |
-        echo "${{ env.PLAYWRIGHT_KEY }}" > playwright_key
+        echo "$PLAYWRIGHT_KEY" > playwright_key
         chmod 600 playwright_key
-        SSH_OPTS='-i playwright_key -o StrictHostKeyChecking=no -o Port=7001'
-        ssh $SSH_OPTS playwright@fuji.garnercorp.com "mkdir -p \"${{ env.DEST_PATH }}\""
-        scp $SSH_OPTS -r playwright-report/* "playwright@fuji.garnercorp.com:${{ env.DEST_PATH }}"
-        echo "[Playwright test report for ${{ matrix.business }}](${{ env.REPORT_URL }})" >> "$GITHUB_STEP_SUMMARY"
+        SSH_OPTS="-i playwright_key -o StrictHostKeyChecking=no -o Port=7001 -o HostName=$(dig +short @8.8.8.8 fuji.garnercorp.com A)"
+        ssh $SSH_OPTS playwright@fuji "mkdir -p \"$DEST_PATH\""
+        scp $SSH_OPTS -r playwright-report/* "playwright@fuji:$DEST_PATH"
+        echo "[Playwright test report for $BUSINESS]($REPORT_URL)" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Upload test results
       if: ${{ !env.skip && failure() }}
