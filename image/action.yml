@@ -50,6 +50,9 @@ inputs:
     description: "Build arguments to pass as --build-arg flags to docker build (comma delimited)"
     required: false
 outputs:
+  digest:
+    description: "Generated image digest"
+    value: ${{ steps.build-and-push-image.outputs.digest }}
   image:
     description: "Generated image reference"
     value: ${{ steps.build-and-push-image.outputs.image }}
