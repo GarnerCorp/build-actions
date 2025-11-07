@@ -1,10 +1,11 @@
 accesstoken
 amd
+backticks
 codependent
 codesandbox
+containerregistry
 corepack
 cred
-debian
 ENAMETOOLONG
 ENOENT
 garnercorp
@@ -13,12 +14,13 @@ gnupg
 gpg
 javaagent
 JDK
-keyserver
+jmx
+jqlang
 maxdepth
 mindepth
 multiarch
+netrc
 noreply
-npmjs
 OLDIFS
 OPTARG
 sbt
@@ -26,8 +28,6 @@ scalafmt
 scalasbt
 scoverage
 scp
-slackapi
-stefanzweifel
 temurin
 tojson
 usr

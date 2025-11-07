@@ -43,7 +43,7 @@ inputs:
     required: false
     default: "false"
   prettier-version:
-    description: Version of prettier to use. Otherwise defaults to latest prettier version unless detect-prettier-version is specified. 
+    description: Version of prettier to use. Otherwise, defaults to latest prettier version unless detect-prettier-version is specified. 
     required: false
     default: ""
   working-directory:
