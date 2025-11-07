@@ -64,6 +64,10 @@ if [ -n "$BUILD_ARGS" ]; then
   BUILD_ARGS="$(echo $BUILD_ARGS | tr ',' ' ' | xargs -n 1 echo --build-arg)"
 fi
 
-echo $BUILD_ARGS | xargs docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t $PUSH_CONTEXT -f $BUILD_DIRECTORY/$DOCKERFILE --push
+echo $BUILD_ARGS | xargs docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t "$PUSH_CONTEXT" -f $BUILD_DIRECTORY/$DOCKERFILE --push
+DIGEST=$(docker inspect --format='{{ index .RepoDigests 0 }}' "$PUSH_CONTEXT" || true)
 
-echo "image=$PUSH_CONTEXT" >> $GITHUB_OUTPUT
+(
+  echo "image=$PUSH_CONTEXT"
+  echo "digest=${DIGEST#*@}"
+) >> $GITHUB_OUTPUT
