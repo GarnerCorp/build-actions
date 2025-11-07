@@ -29,7 +29,7 @@ inputs:
   push:
     description: Whether or not to push the commit to the repository
     required: false
-    default: true
+    default: "true"
   debug:
     description: Trace next-version steps
     required: false

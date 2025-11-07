@@ -13,7 +13,7 @@ inputs:
     required: false
   install-dependencies:
     description: "Whether to install dependencies for the project"
-    default: true
+    default: "true"
     required: false
 
 runs:
