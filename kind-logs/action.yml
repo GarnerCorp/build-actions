@@ -15,7 +15,7 @@ runs:
       run: |
         mkdir -p logs/pod logs/kind
         for pod in $(kubectl get pods -n e2e-tests -o name); do
-          kubectl logs -n e2e-tests "$pod" --all-containers=true --prefix=true > "logs/$pod.log"
+          kubectl logs -n e2e-tests "$pod" --all-containers=true --prefix=true > "logs/$pod.log" || true
         done
         for kind in $(kubectl api-resources -o name); do
           kubectl get -n e2e-tests "$kind" --sort-by=.metadata.creationTimestamp > "logs/kind/$kind.txt" 2>/dev/null || true
