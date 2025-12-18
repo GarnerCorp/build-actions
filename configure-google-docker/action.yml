@@ -34,7 +34,7 @@ runs:
     - name: Authenticate to Google Cloud
       if: ${{ inputs.workload-identity-provider && inputs.service-account }}
       id: auth-work-identity
-      uses: "google-github-actions/auth@v2"
+      uses: google-github-actions/auth@v3
       with:
         workload_identity_provider: ${{ inputs.workload-identity-provider }}
         service_account: ${{ inputs.service-account }}
