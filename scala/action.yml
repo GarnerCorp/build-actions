@@ -86,7 +86,7 @@ runs:
 
     - name: Checkout
       if: ${{ ! inputs.skip-checkout }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: "Google Auth"
       uses: "google-github-actions/auth@v2"
