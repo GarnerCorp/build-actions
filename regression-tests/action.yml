@@ -135,7 +135,7 @@ runs:
 
     - name: Notify Slack
       if: ${{ !env.skip && (failure() || cancelled())}}
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@v2.1.1
       env:
         REPORT_URL: "https://playwright.garnercorp.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/${{ matrix.business }}"
       with:
