@@ -116,7 +116,7 @@ runs:
         fi
 
     - name: Clone repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       if: inputs.checkout == 'true'
       with:
         path: ${{ inputs.working-directory }}
