@@ -178,7 +178,7 @@ runs:
 
     - name: Upload regenerated yarn.lock on failure
       if: ${{ failure() && steps.install-dependencies.conclusion == 'failure' }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.working-directory != '.' && format('{0}-', inputs.working-directory) || '' }}yarn.lock
         path: ${{ inputs.working-directory }}/yarn.lock
