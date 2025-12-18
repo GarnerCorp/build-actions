@@ -64,7 +64,7 @@ runs:
         find target/scala-*/*coverage-report -type f | zip /tmp/scoverage.zip -@
 
     - name: Upload coverage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ inputs.artifact }}
         path: /tmp/scoverage.zip

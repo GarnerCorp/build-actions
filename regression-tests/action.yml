@@ -127,7 +127,7 @@ runs:
 
     - name: Upload test results
       if: ${{ !env.skip && failure() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: "test-results-${{ env.DOMAIN_LEAF }}"
         path: /app/test-results
