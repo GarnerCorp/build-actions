@@ -1,5 +1,8 @@
 # See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-patterns
 
+# Dependency bumps
+Update [-\w]+/[-\w]+ to v(?=\d)
+
 # Automatically suggested patterns
 
 # hit-count: 13 file-count: 9
