@@ -196,6 +196,7 @@ runs:
     - name: Run build
       shell: bash
       run: |
+        : Build
         $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
         if [ -n "$BUILD_SCRIPT" ]; then
           $BUILD_SCRIPT $BUILD_SCRIPT_ARGS
