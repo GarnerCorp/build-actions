@@ -1,9 +1,9 @@
-name: 'Build Image w/ SBT'
-description: 'Build an image using sbt'
-author: 'GarnerCorp'
+name: "Build Image w/ SBT"
+description: "Build an image using sbt"
+author: "GarnerCorp"
 branding:
-  icon: 'globe'
-  color: 'red'
+  icon: "globe"
+  color: "red"
 inputs:
   maven-registry:
     description: "The maven registry from which to retrieve packages"
@@ -17,7 +17,7 @@ inputs:
     required: false
   java-distribution:
     description: "Java distribution"
-    default: 'temurin'
+    default: "temurin"
     required: false
   java-version:
     description: "Java version to use"
@@ -73,7 +73,7 @@ inputs:
     required: false
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Validate inputs
       if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || !inputs.maven-username != !inputs.maven-password }}
@@ -135,10 +135,16 @@ runs:
       with:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
-        cache: 'sbt'
+        cache: "sbt"
 
     - name: Set up sbt
       uses: sbt/setup-sbt@v1
+
+    - name: Set up vips
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libvips-dev
 
     - name: Find Prometheus Agent
       if: inputs.prometheus-url
