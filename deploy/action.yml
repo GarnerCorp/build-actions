@@ -56,11 +56,10 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.repository || !inputs.ssh-key || !inputs.working-directory || !inputs.name || !inputs.mail }}
-      shell: bash
-      env:
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
     - name: Prepare for deployment
       if: (inputs.checkout == 'true') && (env.BRANCH == env.DEFAULT_BRANCH || github.event.pull_request)
       env:

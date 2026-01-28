@@ -76,12 +76,11 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || !inputs.npm-username != !inputs.npm-password }}
-      shell: bash
-      env:
-        CODEPENDENT: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "npm-username", "npm-password" ] ]'
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        codependent: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "npm-username", "npm-password" ] ]'
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
 
     - name: Checkout
       if: ${{ inputs.checkout == 'true' }}

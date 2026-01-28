@@ -62,12 +62,11 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.container-project || !inputs.google-credentials-json != !inputs.google-cloud-sdk-version }}
-      shell: bash
-      env:
-        CODEPENDENT: '[ [ "google-cloud-sdk-version", "google-credentials-json" ] ]'
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        codependent: '[ [ "google-cloud-sdk-version", "google-credentials-json" ] ]'
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
 
     - name: "Google Auth"
       uses: google-github-actions/auth@v3

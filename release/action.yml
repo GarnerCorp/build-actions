@@ -41,11 +41,10 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.repository || !inputs.ssh-key || !inputs.name || !inputs.mail }}
-      shell: bash
-      env:
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
     - name: Validate needs
       if: ${{ inputs.needs-json }}
       uses: garnercorp/build-actions/needs@main

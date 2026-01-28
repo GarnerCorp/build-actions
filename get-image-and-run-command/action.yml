@@ -30,12 +30,11 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.image || !inputs.workload-identity-provider != !inputs.service-account }}
-      shell: bash
-      env:
-        INPUTS: ${{ toJSON(inputs) }}
-        CODEPENDENT: ${{ inputs.checkout == 'true' && '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ], [ "checkout", "workload-identity-provider" ] ]' || '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ] ]' }}
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        codependent: ${{ inputs.checkout == 'true' && '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ], [ "checkout", "workload-identity-provider" ] ]' || '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ] ]' }}
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
 
     - name: Checkout
       id: checkout

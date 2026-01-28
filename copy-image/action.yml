@@ -17,11 +17,10 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.source || !inputs.destinations }}
-      shell: bash
-      env:
-        INPUTS: ${{ toJSON(inputs) }}
-      run: |
-        "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
+      uses: GarnerCorp/build-actions/report-missing-inputs@report-missing-inputs-action
+      with:
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
 
     - name: Add google registries
       shell: bash
