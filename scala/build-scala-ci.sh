@@ -2,6 +2,12 @@
 
 ./scripts/sbt-ci.sh "compile ; Test/compile ; unusedCompileDependenciesTest ; undeclaredCompileDependenciesTest ; Test/unusedCompileDependenciesTest ; Test/undeclaredCompileDependenciesTest ; test ; dist ; $EXTRA_SBT_ARGS"
 
+evict_files() {
+  $GITHUB_ACTION_PATH/find-files |
+  $GITHUB_ACTION_PATH/sort-files |
+  $GITHUB_ACTION_PATH/evict-files
+}
+
 copy_jmx_agent() {
   cp jmx_prometheus_javaagent-*.jar "$1"/
 }
@@ -10,6 +16,8 @@ move_dist() {
   rm -f "$1/target/universal/$1.zip"
   mv "$1/target/universal/$1"*.zip "$1/target/universal/$1.zip"
 }
+
+evict_files
 
 for project in $COPY_PROMETHEUS_TO; do
   copy_jmx_agent $project
