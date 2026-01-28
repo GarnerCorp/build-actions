@@ -21,3 +21,4 @@ Actions for building workflows to build/publish images
 - [get-image-and-run-command](get-image-and-run-command/action.yml)
 - [install-package-manager](install-package-manager/action.yml)
 - [regression-tests](regression-tests/action.yml)
+- [report-missing-inputs](report-missing-inputs/action.yml)

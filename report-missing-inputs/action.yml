@@ -1,0 +1,25 @@
+name: 'Report missing inputs'
+description: 'Report missing inputs'
+author: 'GarnerCorp'
+inputs:
+  inputs:
+    description: "Inputs"
+    required: false
+  codependent:
+    description: "JSON array of arrays of codependent inputs"
+    required: false
+  action-path:
+    description: "Path containing action.yml description"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Report missing inputs
+      run: |
+        : Report missing inputs
+      env:
+        INPUTS: ${{ inputs.inputs }}
+        CODEPENDENT: ${{ inputs.codependent }}
+        GH_ACTION_PATH: ${{ inputs.action-path }}
+      shell: bash
