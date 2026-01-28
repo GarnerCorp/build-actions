@@ -1,0 +1,44 @@
+#!/usr/bin/env perl
+my ($k1, $c1, $v1);
+sub compare_ver {
+  my ($a, $b) = @_;
+  my @a = split /\./, $a;
+  my @b = split /\./, $b;
+  return 1 if $a[0] > $b[0];
+  return -1 if $a[0] < $b[0];
+  return 1 if $a[1] > $b[1];
+  return -1 if $a[1] < $b[1];
+  return 1 if $a[2] > $b[2];
+  return -1 if $a[2] < $b[2];
+  return 0;
+}
+
+sub remove_file {
+  my ($k, $c, $v) = @_;
+  my $file = "$c-$v$k";
+  unlink($file);
+}
+
+while (<>) {
+  if (/(\S+) (\S+) (\S+)/) {
+    my ($k2, $c2, $v2) = ($1, $2, $3);
+    if (defined $k1 && ($k1 eq $k2) && ($c1 eq $c2)) {
+      my $compare = compare_ver ($v1, $v2);
+      if ($compare == -1) {
+        remove_file($k1, $c1, $v1);
+        ($k1, $c1, $v1) = ($k2, $c2, $v2);
+      } elsif ($compare == 1) {
+        remove_file($k2, $c2, $v2);
+      } else {
+        if ($compare == 0) {
+          print "??\n";
+        } else {
+          print "!!\n";
+        }
+        ($k1, $c1, $v1) = ($k2, $c2, $v2);
+      }
+    } else {
+      ($k1, $c1, $v1) = ($k2, $c2, $v2);
+    }
+  }
+}
