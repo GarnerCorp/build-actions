@@ -30,6 +30,12 @@ inputs:
     description: Whether or not to push the commit to the repository
     required: false
     default: "true"
+  use-log:
+    description: Provide log (used when another bump-version is producing the value)
+    required: false
+  use-version:
+    description: Use specific new version (used when another bump-version is producing the value)
+    required: false
   debug:
     description: Trace next-version steps
     required: false
@@ -48,11 +54,12 @@ runs:
   using: "composite"
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.version-file-path || (!inputs.version-pattern && !inputs.version_parser) }}
+      if: ${{ !inputs.version-file-path || (!inputs.version-pattern != !!inputs.version_parser) || (!inputs.use-version != !!inputs.use-log) }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
+        codependent: '[ ["version-parser", "version-type"], ["use-log", "use-version"] ]'
 
     - name: get-current-version
       if: ${{ !inputs.version-type }}
@@ -99,7 +106,7 @@ runs:
         GIT_MAIL: ${{ inputs.git-email }}
 
     - uses: GarnerCorp/build-actions/next-version@main
-      id: bump
+      id: next
       with:
         version-file-path: ${{ inputs.version-file-path }}
         version-pattern: ${{ env.VERSION_PATTERN }}
@@ -115,7 +122,7 @@ runs:
         : Update the version in the file using custom parser
         "$VERSION_PARSER" update "$VERSION_FILE" "$VERSION"
       env:
-        VERSION: ${{ steps.bump.outputs.version }}
+        VERSION: ${{ inputs.use-version || steps.next.outputs.version }}
         VERSION_PARSER: ${{ inputs.version-parser }}
         VERSION_FILE: ${{ inputs.version-file-path }}
 
@@ -136,8 +143,8 @@ runs:
         perl -pi -e 's/$ENV{VERSION_PREFIX}$ENV{OLD_VERSION}/$ENV{VERSION_PREFIX}$ENV{VERSION}/g' "$VERSION_FILE"
       env:
         VERSION_TYPE: ${{ inputs.version-type }}
-        VERSION: ${{ steps.bump.outputs.version }}
-        OLD_VERSION: ${{ steps.bump.outputs.old-version }}
+        VERSION: ${{ inputs.use-version || steps.next.outputs.version }}
+        OLD_VERSION: ${{ steps.next.outputs.old-version }}
         VERSION_FILE: ${{ inputs.version-file-path }}
 
     - name: set-git-username
@@ -167,8 +174,8 @@ runs:
         ) >> $commit_message
         git commit -F "$commit_message"
       env:
-        VERSION: ${{ steps.bump.outputs.version }}
-        COMMIT_LOG: ${{ steps.bump.outputs.commit-log }}
+        VERSION: ${{ inputs.use-version || steps.next.outputs.version }}
+        COMMIT_LOG: ${{ inputs.use-log || steps.next.outputs.commit-log }}
 
     - name: push
       if: ${{ inputs.push }}
