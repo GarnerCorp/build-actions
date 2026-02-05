@@ -36,6 +36,9 @@ inputs:
   use-version:
     description: Use specific new version (used when another bump-version is producing the value)
     required: false
+  current-version:
+    description: Use specific old version (used when another process may hold a source of truth)
+    required: false
   debug:
     description: Trace next-version steps
     required: false
@@ -63,7 +66,7 @@ runs:
         "${{ github.action_path }}/../scripts/report-missing-inputs.pl"
 
     - name: get-current-version
-      if: ${{ !inputs.version-type }}
+      if: ${{ !inputs.current-version && !inputs.version-type }}
       shell: bash
       run: |
         : Ask the version-parser to get the version from the version file
@@ -111,7 +114,7 @@ runs:
       with:
         version-file-path: ${{ inputs.version-file-path }}
         version-pattern: ${{ env.VERSION_PATTERN }}
-        current-version: ${{ env.CURRENT_VERSION }}
+        current-version: ${{ inputs.current-version || env.CURRENT_VERSION }}
         major: ${{ inputs.major }}
         minor: ${{ inputs.minor }}
         debug: ${{ inputs.debug }}
