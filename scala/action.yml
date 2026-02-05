@@ -177,7 +177,7 @@ runs:
           esac
         fi
 
-        curl -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" -O "$PROMETHEUS_URL"
+        curl $CREDENTIALS -O "$PROMETHEUS_URL"
 
     - name: Cache SBT Project
       uses: actions/cache@v5
