@@ -177,7 +177,7 @@ runs:
           esac
         fi
 
-        curl -L -s $CREDENTIALS -O "$PROMETHEUS_URL"
+        curl -f -L -s $CREDENTIALS -O "$PROMETHEUS_URL"
 
     - name: Cache SBT Project
       uses: actions/cache@v5
