@@ -41,7 +41,7 @@ inputs:
     required: false
   yarn-test-command:
     description: "Command to run tests"
-    default: "yarn test"
+    default: "yarn test --watch=false"
     required: false
   yarn-lint-command:
     description: "Command to run ESLint"
