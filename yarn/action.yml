@@ -135,8 +135,8 @@ runs:
       id: yarn-cache
       with:
         path: ${{ env.CACHE_DIR_YARN }}
-        key: yarn-${{ runner.os }}-${{ inputs.working-directory }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, 'yarn.lock')) }}
-        restore-keys: yarn-${{ runner.os }}-${{ inputs.working-directory }}
+        key: yarn-${{ runner.os }}-${{ runner.arch }}-${{ inputs.working-directory }}-${{ hashFiles(format('{0}/{1}', inputs.working-directory, 'yarn.lock')) }}
+        restore-keys: yarn-${{ runner.os }}-${{ runner.arch }}-${{ inputs.working-directory }}
 
     - name: Set up yarn credentials
       if: inputs.npm-username && inputs.npm-password
