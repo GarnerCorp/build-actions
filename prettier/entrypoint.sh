@@ -70,7 +70,12 @@ summarize_changes() {
   (
     echo "## ${1:-Changes}"
     backticks=$(minimum_backticks "$changes")
-    echo "${backticks}sh"
+    if grep -q '@@ -' "$changes"; then
+      kind=diff
+    else
+      kind=sh
+    fi
+    echo "${backticks}${kind}"
     cat "$changes"
     echo "${backticks}"
   ) >> "$GITHUB_STEP_SUMMARY"
