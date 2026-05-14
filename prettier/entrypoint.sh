@@ -188,6 +188,10 @@ prettier_options="--no-error-on-unmatched-pattern $INPUT_PRETTIER_OPTIONS $check
 prettier_out=$(mktemp)
 prettier_err=$(mktemp)
 
+strip_color_codes() {
+  perl -pe "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" "$@"
+}
+
 dump_log() {
   file="$1"
   if [ -s "$file" ]; then
@@ -196,7 +200,7 @@ dump_log() {
       echo "### $title"
       backticks=$(minimum_backticks "$file")
       echo "${backticks}sh"
-      cat "$file"
+      strip_color_codes "$file"
       echo "${backticks}"
       echo
     ) >> "$GITHUB_STEP_SUMMARY"
