@@ -231,8 +231,8 @@ npx prettier $prettier_options > "$prettier_out" 2> "$prettier_err" \
         echo '```'
         diff -U0 $logs_before $logs_after|perl -ne 'next unless s/^[+]([^+])/$1/; print' | xargs -n1 cat
         echo '```'
-        exit 1;
       ) | tee -a "$GITHUB_STEP_SUMMARY"
+      exit 1;
     fi
   }
 
