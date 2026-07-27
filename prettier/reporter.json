@@ -19,6 +19,18 @@
                     "message": 1
                 }
             ]
+        },
+        {
+            "owner": "dangling-symbolic-link",
+            "severity": "error",
+            "pattern": [
+                {
+                    "regexp": "^(dangling symbolic link: (.*))@(\\d+)$",
+                    "message": 1,
+                    "file": 2,
+                    "line": 3
+                }
+            ]
         }
     ]
 }
