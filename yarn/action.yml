@@ -84,7 +84,7 @@ runs:
 
     - name: Checkout
       if: ${{ inputs.checkout == 'true' }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Set up Node ${{ inputs.node-version }}
       uses: actions/setup-node@v6
