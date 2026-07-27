@@ -124,6 +124,29 @@ runs:
         token: ${{ inputs.checkout-token || github.token }}
         persist-credentials: ${{ env.PUSH_TO_REMOTE }}
 
+    - name: Add problem matchers
+      shell: bash
+      run: |
+        : Add problem matchers
+        $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
+
+    - name: Check for dangling symlinks
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        : Check for dangling symlinks
+        rm -f /tmp/found-dangling-symlinks 2>/dev/null
+        git ls-files | while IFS= read -r file; do
+          if [ -L "$file" ] && [ ! -e "$file" ]; then
+            echo "dangling symbolic link: $file@1"
+            touch /tmp/found-dangling-symlinks
+          fi
+        done
+        if [ -e /tmp/found-dangling-symlinks ]; then
+          echo "::error title=Dangling symlinks::Found dangling symlinks"
+          exit 1
+        fi
+
     - name: Stub remote to suppress pushes
       working-directory: ${{ inputs.working-directory }}
       if: ${{ env.PUSH_TO_REMOTE != 'true' }}
