@@ -1,0 +1,29 @@
+name: "Report missing inputs"
+description: "Report missing inputs for other actions"
+author: "GarnerCorp"
+branding:
+  icon: "alert-circle"
+  color: "red"
+inputs:
+  codependent:
+    description: "JSON array of arrays of codependent inputs"
+    required: false
+  inputs:
+    description: "Serialized json of `inputs` for action"
+    required: true
+  action-path:
+    description: "Path containing action.yml description"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Report missing inputs
+      env:
+        INPUTS: ${{ inputs.inputs }}
+        CODEPENDENT: ${{ inputs.codependent }}
+        ACTION_PATH: ${{ inputs.action-path }}
+      shell: bash
+      run: |
+        : Report missing inputs
+        "${{ github.action_path }}/report-missing-inputs.pl"

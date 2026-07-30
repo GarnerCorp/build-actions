@@ -24,12 +24,11 @@ runs:
   steps:
     - name: Validate inputs
       if: ${{ !inputs.workload-identity-provider != !inputs.service-account }}
-      shell: bash
-      env:
-        INPUTS: ${{ toJSON(inputs) }}
-        CODEPENDENT: '[ [ "workload-identity-provider", "service-account" ] ]'
-      run: |
-        "$GITHUB_ACTION_PATH/../scripts/report-missing-inputs.pl"
+      uses: $/report-missing-inputs
+      with:
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
+        codependent: '[ [ "workload-identity-provider", "service-account" ] ]'
 
     - name: Authenticate to Google Cloud
       if: ${{ inputs.workload-identity-provider && inputs.service-account }}

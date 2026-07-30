@@ -20,7 +20,7 @@ my %inputs = %{ get_from_json_env 'INPUTS' };
 my @required;
 my $status = 0;
 
-open INPUT, '<', "$ENV{GITHUB_ACTION_PATH}/action.yml";
+open INPUT, '<', "$ENV{ACTION_PATH}/action.yml";
 while (<INPUT>) {
     if ($state == 0) {
         $state = 1 if /^inputs:/;
