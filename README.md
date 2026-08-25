@@ -22,3 +22,4 @@ Actions for building workflows to build/publish images
 - [install-package-manager](install-package-manager/action.yml)
 - [regression-tests](regression-tests/action.yml)
 - [report-missing-inputs](report-missing-inputs/action.yml)
+- [check-graphql-tag](check-graphql-tag/action.yml)

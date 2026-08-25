@@ -1,0 +1,19 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "graphql-tag-duplicate",
+      "severity": "error",
+      "pattern": [
+        {
+          "regexp": "(.*?):(\\d+):(\\d+):(\\d+) ((duplicate fragment): .*)",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "endColumn": 4,
+          "message": 5,
+          "code": 6
+        }
+      ]
+    }
+  ]
+}
