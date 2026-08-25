@@ -1,0 +1,32 @@
+name: Check apollographql/graphql-tag
+description: Check for duplicate fragment definitions
+
+author: 'GarnerCorp'
+
+inputs:
+  file-pattern:
+    description: File pattern used for `git ls-files` to select files to check
+    required: false
+    default: "*.ts"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Add problem matchers
+      shell: bash
+      run: |
+        : Add problem matchers
+        $GITHUB_ACTION_PATH/../scripts/add-matchers.sh
+
+    - name: Check for duplicate fragment definitions
+      shell: bash
+      run: |
+        : Check for duplicate fragment definitions
+        git ls-files -- "${INPUT_FILE_PATTERN:-.}" -z |
+          "$GITHUB_ACTION_PATH/check-graphql-tags.pl"
+      env:
+        INPUT_FILE_PATTERN: ${{ inputs.file-pattern }}
+
+branding:
+  icon: "shopping-cart"
+  color: "yellow"

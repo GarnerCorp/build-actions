@@ -1,10 +1,12 @@
 accesstoken
+apollographql
 codependent
 codesandbox
 containerregistry
 cred
 ENAMETOOLONG
 garnercorp
+graphql
 javaagent
 jmx
 jqlang
