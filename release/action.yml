@@ -47,7 +47,7 @@ runs:
         action-path: ${{ github.action_path }}
     - name: Validate needs
       if: ${{ inputs.needs-json }}
-      uses: garnercorp/build-actions/needs@main
+      uses: $/needs
       with:
         needs-json: ${{ inputs.needs-json }}
     - name: Prepare for E2E Deployment

@@ -44,7 +44,7 @@ runs:
     - name: Set up google docker credentials
       id: google-credentials
       if: ${{ inputs.workload-identity-provider && inputs.service-account }}
-      uses: GarnerCorp/build-actions/configure-google-docker@main
+      uses: $/configure-google-docker
       env:
         IMAGE: ${{ inputs.image }}
         WORKLOAD_IDENTITY_PROVIDER: ${{ inputs.workload-identity-provider }}
