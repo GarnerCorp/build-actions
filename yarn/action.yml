@@ -116,7 +116,7 @@ runs:
         fi
 
     - name: Install package manager
-      uses: GarnerCorp/build-actions/install-package-manager@main
+      uses: $/install-package-manager
       with:
         install-dependencies: false
         working-directory: ${{ inputs.working-directory }}
