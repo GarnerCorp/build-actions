@@ -52,18 +52,6 @@ inputs:
   build-script-args:
     description: "Required args for build-script (space delimited)"
     required: false
-  google-credentials-json:
-    description: "Google Service Account JSON file"
-    required: false
-  google-cloud-sdk-version:
-    description: "Google Cloud SDK version"
-    required: false
-  container-project:
-    description: "Path within container registry for team"
-    required: false
-  artifact-registries:
-    description: "Google Artifact Registries that may need docker access (space delimited)"
-    required: false
   skip-checkout:
     description: "Use files from working directory instead of checking out"
     required: false
@@ -72,39 +60,16 @@ runs:
   using: 'composite'
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || !inputs.maven-username != !inputs.maven-password }}
+      if: ${{ !inputs.maven-username != !inputs.maven-password }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
-        codependent: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "maven-username", "maven-password" ] ]'
+        codependent: '[ [ "maven-username", "maven-password" ] ]'
 
     - name: Checkout
       if: ${{ ! inputs.skip-checkout }}
       uses: actions/checkout@v7
-
-    - name: "Google Auth"
-      uses: google-github-actions/auth@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      with:
-        credentials_json: "${{ inputs.google-credentials-json }}"
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      with:
-        version: ${{ inputs.google-cloud-sdk-version }}
-        project_id: ${{ inputs.container-project }}
-
-    - name: Add google registries
-      shell: bash
-      env:
-        registries: >-
-          ${{ inputs.artifact-registries }}
-      if: ${{ env.registries }}
-      run: |
-        : Configure docker gcloud credential helpers if they are not already configured
-        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
     - name: Install sbt
       if: ${{ env.ACT }}
