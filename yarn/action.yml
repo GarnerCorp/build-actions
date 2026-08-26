@@ -75,12 +75,12 @@ runs:
   using: "composite"
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.google-credentials-json != !inputs.google-cloud-sdk-version || !inputs.npm-username != !inputs.npm-password }}
+      if: ${{ !inputs.npm-username != !inputs.npm-password }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
-        codependent: '[ [ "google-cloud-sdk-version", "google-credentials-json" ], [ "npm-username", "npm-password" ] ]'
+        codependent: '[ [ "npm-username", "npm-password" ] ]'
 
     - name: Checkout
       if: ${{ inputs.checkout == 'true' }}
@@ -217,25 +217,6 @@ runs:
       shell: bash
       run: ${{ inputs.yarn-lint-command }}
       working-directory: ${{ inputs.working-directory }}
-
-    - name: "Google Auth"
-      uses: google-github-actions/auth@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      with:
-        credentials_json: "${{ inputs.google-credentials-json }}"
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      with:
-        version: ${{ inputs.google-cloud-sdk-version }}
-        project_id: ${{ inputs.container-project }}
-
-    - name: Configure GCloud and Docker
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      shell: bash
-      run: |
-        gcloud auth configure-docker
 
     - name: Package
       if: ${{ ! inputs.skip-package }}
