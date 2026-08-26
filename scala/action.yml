@@ -34,10 +34,6 @@ inputs:
     description: "Glob for sbt targets"
     default: "*/target"
     required: false
-  source-directory:
-    description: "Source directory within working directory"
-    default: "src"
-    required: false
   copy-prometheus-to:
     description: "Directories that need a prometheus jar"
     default: ""
