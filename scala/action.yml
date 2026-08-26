@@ -52,6 +52,9 @@ inputs:
   build-script-args:
     description: "Required args for build-script (space delimited)"
     required: false
+  artifact-registries:
+    description: "Google Artifact Registries that may need docker access (space delimited)"
+    required: false
   skip-checkout:
     description: "Use files from working directory instead of checking out"
     required: false
@@ -70,6 +73,16 @@ runs:
     - name: Checkout
       if: ${{ ! inputs.skip-checkout }}
       uses: actions/checkout@v7
+
+    - name: Add google registries
+      shell: bash
+      env:
+        registries: >-
+          ${{ inputs.artifact-registries }}
+      if: ${{ env.registries }}
+      run: |
+        : Configure docker gcloud credential helpers if they are not already configured
+        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
     - name: Install sbt
       if: ${{ env.ACT }}
