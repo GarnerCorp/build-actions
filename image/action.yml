@@ -23,12 +23,12 @@ inputs:
     description: "Name of Dockerfile"
     default: "Dockerfile"
     required: false
-  google-credentials-json:
-    description: "Google Service Account JSON file"
+  service-account:
+    description: "Service Account for Google Cloud Auth"
     default: ""
     required: false
-  google-cloud-sdk-version:
-    description: "Google Cloud SDK version"
+  workload-identity-provider:
+    description: "Workload Identity Provider for Google Cloud Auth"
     default: ""
     required: false
   image-name:
@@ -61,25 +61,19 @@ runs:
   using: "composite"
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.container-project || !inputs.google-credentials-json != !inputs.google-cloud-sdk-version }}
+      if: ${{ !inputs.container-project || !inputs.service-account != !inputs.workload-identity-provider }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
-        codependent: '[ [ "google-cloud-sdk-version", "google-credentials-json" ] ]'
+        codependent: '[ [ "service-account", "workload-identity-provider" ] ]'
 
     - name: "Google Auth"
       uses: google-github-actions/auth@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
+      if: ${{ inputs.service-account && inputs.workload-identity-provider && ! env.ACT }}
       with:
-        credentials_json: "${{ inputs.google-credentials-json }}"
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v3
-      if: ${{ inputs.google-credentials-json && inputs.google-cloud-sdk-version && ! env.ACT }}
-      with:
-        version: ${{ inputs.google-cloud-sdk-version }}
-        project_id: ${{ inputs.container-project }}
+        service_account: "${{ inputs.service-account }}"
+        workload_identity_provider: "${{ inputs.workload-identity-provider }}"
 
     - name: Add google registries
       shell: bash
