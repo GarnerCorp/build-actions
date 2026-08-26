@@ -13,6 +13,7 @@ if [ -n "$registries" ]; then
   echo ::group::Configure docker gcloud credential helpers
   old_config=$(mktemp)
   new_config=$(mktemp)
+  temp_config=$(mktemp)
   additions=$(mktemp)
 
   trim_docker_conf_trailing_commas() {
@@ -22,7 +23,8 @@ if [ -n "$registries" ]; then
   for registry in $registries; do
     if [ "$(jq -r '.credHelpers["$registry"] // empty' ~/.docker/config.json)" = '' ] ; then
       trim_docker_conf_trailing_commas > "$old_config" || true
-      gcloud auth configure-docker "$registry" > /dev/null 2> /dev/null < /dev/null
+      jq '.credHelpers += {"'"$registry"'": "gcloud"}' ~/.docker/config.json > "$temp_config" &&
+        mv "$temp_config" ~/.docker/config.json
       trim_docker_conf_trailing_commas > "$new_config" || true
       if ! diff -q "$old_config" "$new_config" > /dev/null; then
         diff -U0 "$old_config" "$new_config" | perl -ne 'next unless /"gcloud"/ && s/^[+]([^+])/$1/; print' >> "$additions"
