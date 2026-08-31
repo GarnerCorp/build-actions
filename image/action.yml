@@ -101,24 +101,9 @@ runs:
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
 
-    - name: Check for crane
-      if: ${{ inputs.additional-image-tags }}
-      id: crane
-      shell: bash
-      run: |
-        : Check for crane
-        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
-          echo "needed=1" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Install crane
-      if: ${{ steps.crane.outputs.needed }}
-      id: install-crane
-      uses: check-spelling/gh-program-downloader@prerelease
-      with:
-        repository: google/go-containerregistry
-        file-re: ^crane
-        destination: "${{ github.workspace }}/../crane"
+      if: ${{ inputs.additional-image-tags }}
+      uses: $/install-crane
 
     - name: Copy images
       if: ${{ inputs.additional-image-tags }}
