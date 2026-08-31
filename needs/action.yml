@@ -12,7 +12,7 @@ runs:
     - name: Report jobs that failed
       run: |
         echo "$needs" > jobs-ran.json
-        jq -r '[map_values(select(.result == "failure"))|keys[]]|join (" job, ")' jobs-ran.json > jobs-failed.txt
+        jq -r '[map_values(select(.result == "failure" or .result == "cancelled"))|keys[]]|join (" job, ")' jobs-ran.json > jobs-failed.txt
         if ! grep -q . jobs-failed.txt; then
           exit 0
         fi
