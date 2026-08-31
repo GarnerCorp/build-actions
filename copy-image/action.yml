@@ -32,23 +32,8 @@ runs:
         : Configure docker gcloud credential helpers if they are not already configured
         "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
-    - name: Check for crane
-      id: crane
-      shell: bash
-      run: |
-        : Check for crane
-        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
-          echo "needed=1" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Install crane
-      if: ${{ steps.crane.outputs.needed }}
-      id: install-crane
-      uses: check-spelling/gh-program-downloader@prerelease
-      with:
-        repository: google/go-containerregistry
-        file-re: ^crane
-        destination: "${{ github.workspace }}/../crane"
+      uses: $/install-crane
 
     - name: Copy image
       shell: bash

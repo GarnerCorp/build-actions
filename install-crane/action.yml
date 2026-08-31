@@ -1,0 +1,27 @@
+name: "Install crane"
+description: "Install crane"
+author: "GarnerCorp"
+branding:
+  icon: "archive"
+  color: "green"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check for crane
+      id: crane
+      shell: bash
+      run: |
+        : Check for crane
+        if [ ! -e $GITHUB_WORKSPACE/../crane ]; then
+          echo "needed=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install crane
+      if: ${{ steps.crane.outputs.needed }}
+      id: install-crane
+      uses: check-spelling/gh-program-downloader@prerelease
+      with:
+        repository: google/go-containerregistry
+        file-re: ^crane
+        destination: "${{ github.workspace }}/../crane"
