@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["findings"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "line", "line_text", "found", "expected"],
+        "properties": {
+          "path":      { "type": "string" },
+          "line":      { "type": "integer" },
+          "line_text": { "type": "string" },
+          "found":     { "type": "string" },
+          "expected":  { "type": "string" }
+        }
+      }
+    }
+  }
+}
