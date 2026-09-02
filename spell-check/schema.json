@@ -8,13 +8,13 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "line", "line_text", "found", "expected"],
+        "required": ["path", "line", "line_text", "misspelling", "correction"],
         "properties": {
           "path":      { "type": "string" },
           "line":      { "type": "integer" },
           "line_text": { "type": "string" },
-          "found":     { "type": "string" },
-          "expected":  { "type": "string" }
+          "misspelling": { "type": "string" },
+          "correction":  { "type": "string" }
         }
       }
     }

@@ -103,51 +103,53 @@ def plan(work_dir):
     report("requests", len(parts))
 
 
-def grounded(found, sent):
+def grounded(findings, sent):
     kept, seen = [], set()
-    for finding in found:
+    for finding in findings:
         if not isinstance(finding, dict):
             continue
-        where = (finding.get("path"), finding.get("line"), finding.get("found"))
-        word, expected = where[2], finding.get("expected")
-        if not word or not isinstance(word, str) or not isinstance(expected, str):
+        where = (finding.get("path"), finding.get("line"), finding.get("misspelling"))
+        word, correction = where[2], finding.get("correction")
+        if not word or not isinstance(word, str) or not isinstance(correction, str):
             continue
         text = sent.get(where[:2])
-        if text is None or word not in text or word == expected or where in seen:
+        if text is None or word not in text or word == correction or where in seen:
             continue
         seen.add(where)
-        kept.append((*where, expected, text.replace(word, expected)))
+        kept.append((*where, correction, text.replace(word, correction)))
     return kept
 
 
 def review(work_dir):
-    parts, found = [], []
+    parts, findings = [], []
     for name in sorted(os.listdir(work_dir)):
         if name.startswith("part-"):
             parts.append(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))
         elif name.startswith("findings-"):
             try:
-                found += json.loads(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))["findings"]
+                findings += json.loads(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))["findings"]
             except (OSError, ValueError, KeyError, TypeError):
                 announce(f"could not read {name}; its findings are not reported")
-    kept = grounded(found, sent_lines(parts))
+    kept = grounded(findings, sent_lines(parts))
 
     with open(os.environ["REVIEW"], "w", encoding="utf-8") as review_file:
         json.dump({"event": "COMMENT", "comments": [
             {"path": path, "line": number, "side": "RIGHT",
-             "body": f"`{word}` \N{RIGHTWARDS ARROW} `{expected}`"
+             "body": f"`{word}` \N{RIGHTWARDS ARROW} `{correction}`"
                      f"\n\n```suggestion\n{suggestion}\n```"}
-            for path, number, word, expected, suggestion in kept]}, review_file)
+            for path, number, word, correction, suggestion in kept]}, review_file)
 
-    dropped = len(found) - len(kept)
-    announce(f"found {len(kept)} suggestion(s)"
+    dropped = len(findings) - len(kept)
+    announce(f"reported {len(kept)} suggestion(s)"
              + (f", dropped {dropped} unverifiable finding(s)" if dropped else ""))
 
     if kept and (summary := os.environ.get("GITHUB_STEP_SUMMARY")):
         with open(summary, "a", encoding="utf-8") as table:
-            print("## Spelling\n\nFile|Line|Found|Expected\n-|-|-|-", file=table)
-            for path, number, word, expected, _ in kept:
-                print(f"{path}|{number}|`{word}`|`{expected}`", file=table)
+            print("## Spelling\n\nFile|Line|Misspelling|Correction\n-|-|-|-", file=table)
+            repository = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+            for path, number, word, correction, _ in kept:
+                link = f"{repository}/blob/{os.environ['HEAD_SHA']}/{path}#L{number}"
+                print(f"[{Path(path).name}]({link})|{number}|`{word}`|`{correction}`", file=table)
             print(file=table)
     report("count", len(kept))
 

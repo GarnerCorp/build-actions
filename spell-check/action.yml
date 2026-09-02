@@ -101,6 +101,7 @@ runs:
       env:
         WORK_DIR: ${{ runner.temp }}/spell-check
         REVIEW: ${{ runner.temp }}/spell-check/review.json
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
         : Suggest corrections
         "$GITHUB_ACTION_PATH/spell-check.py" review
