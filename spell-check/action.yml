@@ -21,11 +21,11 @@ inputs:
     description: "Prompt to use instead of the one included with this action"
     required: false
     default: ""
-  max-added-lines:
+  added-lines-per-file-threshold:
     description: "Leave a file alone when a pull request adds more than this many lines to it"
     required: false
     default: "4000"
-  max-requests:
+  max-model-requests:
     description: "Most requests sent for one pull request. Lines that do not fit are left unread"
     required: false
     default: "10"
@@ -61,8 +61,8 @@ runs:
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PROMPT_FILE: ${{ inputs.prompt-file }}
-        MAX_ADDED_LINES: ${{ inputs.max-added-lines }}
-        MAX_REQUESTS: ${{ inputs.max-requests }}
+        MAX_ADDED_LINES: ${{ inputs.added-lines-per-file-threshold }}
+        MAX_REQUESTS: ${{ inputs.max-model-requests }}
       run: |
         : Collect the lines to read
         mkdir -p "$WORK_DIR"
