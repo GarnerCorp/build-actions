@@ -62,7 +62,7 @@ runs:
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PROMPT_FILE: ${{ inputs.prompt-file }}
         MAX_ADDED_LINES: ${{ inputs.added-lines-per-file-threshold }}
-        MAX_REQUESTS: ${{ inputs.max-model-requests }}
+        MAX_MODEL_REQUESTS: ${{ inputs.max-model-requests }}
       run: |
         : Collect the lines to read
         mkdir -p "$WORK_DIR"

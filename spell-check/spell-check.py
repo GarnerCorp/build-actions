@@ -84,7 +84,7 @@ def plan(work_dir):
                 for path, lines in added.items() if len(lines) > per_file]
     kept = {path: lines for path, lines in added.items() if len(lines) <= per_file}
 
-    most = int(os.environ.get("MAX_REQUESTS") or 10)
+    most = int(os.environ.get("MAX_MODEL_REQUESTS") or 10)
     parts = split(kept, 200000)
     if len(parts) > most:
         left_out.append(f"{len(parts) - most} request(s) over the limit of {most}")
