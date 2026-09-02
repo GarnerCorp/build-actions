@@ -53,6 +53,11 @@ runs:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
 
+    - name: Check out repository
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
     - name: Collect the lines to read
       id: plan
       shell: bash
