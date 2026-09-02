@@ -1,0 +1,129 @@
+name: "Spell check"
+description: "Suggest spelling corrections for the lines added by a pull request"
+author: "GarnerCorp"
+branding:
+  icon: "check-square"
+  color: "blue"
+
+inputs:
+  openai-api-key:
+    description: "Key for the API that reviews the added lines"
+    required: true
+  model:
+    description: "Model to review with"
+    required: false
+    default: "gpt-5.6-luna"
+  effort:
+    description: "Reasoning effort"
+    required: false
+    default: "low"
+  prompt-file:
+    description: "Prompt to use instead of the one included with this action"
+    required: false
+    default: ""
+  added-lines-per-file-threshold:
+    description: "Leave a file alone when a pull request adds more than this many lines to it"
+    required: false
+    default: "4000"
+  max-model-requests:
+    description: "Most requests sent for one pull request. Lines that do not fit are left unread"
+    required: false
+    default: "10"
+  post-review:
+    description: "Post the suggestions as a review. When false they only go to the job summary"
+    required: false
+    default: "true"
+  fail-on-suggestions:
+    description: "Fail the job when the review has something to suggest"
+    required: false
+    default: "true"
+
+outputs:
+  suggestions:
+    description: "Number of suggestions the review offered"
+    value: ${{ steps.review.outputs.count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      if: ${{ !inputs.openai-api-key }}
+      uses: $/report-missing-inputs
+      with:
+        inputs: ${{ toJSON(inputs) }}
+        action-path: ${{ github.action_path }}
+
+    - name: Collect the lines to read
+      id: plan
+      shell: bash
+      env:
+        WORK_DIR: ${{ runner.temp }}/spell-check
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        PROMPT_FILE: ${{ inputs.prompt-file }}
+        MAX_ADDED_LINES: ${{ inputs.added-lines-per-file-threshold }}
+        MAX_MODEL_REQUESTS: ${{ inputs.max-model-requests }}
+      run: |
+        : Collect the lines to read
+        mkdir -p "$WORK_DIR"
+        "$GITHUB_ACTION_PATH/spell-check.py" plan
+
+    - name: Set up the reader
+      if: ${{ fromJSON(steps.plan.outputs.requests) >= 1 }}
+      uses: openai/codex-action@v1
+      with:
+        openai-api-key: ${{ inputs.openai-api-key }}
+        safety-strategy: read-only
+
+    - name: Read the added lines
+      if: ${{ fromJSON(steps.plan.outputs.requests) >= 1 }}
+      shell: bash
+      env:
+        WORK_DIR: ${{ runner.temp }}/spell-check
+        REQUESTS: ${{ steps.plan.outputs.requests }}
+        MODEL: ${{ inputs.model }}
+        EFFORT: ${{ inputs.effort }}
+      run: |
+        : Read the added lines
+        for number in $(seq "$REQUESTS"); do
+          codex exec --skip-git-repo-check --sandbox read-only --cd "$WORK_DIR" \
+            --model "$MODEL" --config "model_reasoning_effort=\"$EFFORT\"" \
+            --output-schema "$GITHUB_ACTION_PATH/schema.json" \
+            --output-last-message "$WORK_DIR/findings-$number.json" - < "$WORK_DIR/request-$number.txt" &
+        done
+        for job in $(jobs -p); do
+          wait "$job"
+        done
+
+    - name: Suggest corrections
+      id: review
+      shell: bash
+      env:
+        WORK_DIR: ${{ runner.temp }}/spell-check
+        REVIEW: ${{ runner.temp }}/spell-check/review.json
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        : Suggest corrections
+        "$GITHUB_ACTION_PATH/spell-check.py" review
+
+    - name: Post the review
+      if: ${{ inputs.post-review == 'true' && steps.review.outputs.count != '0' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REVIEW: ${{ runner.temp }}/spell-check/review.json
+        PULL_REQUEST: ${{ github.event.pull_request.number }}
+        REPOSITORY: ${{ github.repository }}
+      run: |
+        : Post the review
+        gh api "repos/$REPOSITORY/pulls/$PULL_REQUEST/reviews" --input "$REVIEW"
+
+    - name: Report the misspellings
+      if: ${{ inputs.fail-on-suggestions == 'true' && steps.review.outputs.count != '0' }}
+      shell: bash
+      env:
+        COUNT: ${{ steps.review.outputs.count }}
+      run: |
+        : Report the misspellings
+        echo "::error ::Spell check has $COUNT suggestion(s); see the job summary"
+        exit 1

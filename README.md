@@ -24,3 +24,4 @@ Actions for building workflows to build/publish images
 - [report-missing-inputs](report-missing-inputs/action.yml)
 - [check-graphql-tag](check-graphql-tag/action.yml)
 - [install-crane](install-crane/action.yml)
+- [spell-check](spell-check/action.yml)

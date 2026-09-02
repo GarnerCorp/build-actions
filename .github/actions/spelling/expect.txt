@@ -6,12 +6,15 @@ containerregistry
 cred
 ENAMETOOLONG
 garnercorp
+gpt
 graphql
 javaagent
 jmx
 jqlang
 netrc
 OLDIFS
+openai
+pathlib
 scalafmt
 scalasbt
 scoverage
