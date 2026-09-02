@@ -145,11 +145,11 @@ def review(work_dir):
 
     if kept and (summary := os.environ.get("GITHUB_STEP_SUMMARY")):
         with open(summary, "a", encoding="utf-8") as table:
-            print("## Spelling\n\nFile|Line|Misspelling|Correction\n-|-|-|-", file=table)
+            print("## Spelling\n\nFile|Misspelling|Correction\n-|-|-", file=table)
             repository = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
             for path, number, word, correction, _ in kept:
-                link = f"{repository}/blob/{os.environ['HEAD_SHA']}/{path}#L{number}"
-                print(f"[{Path(path).name}]({link})|{number}|`{word}`|`{correction}`", file=table)
+                link = f"{repository}/blame/{os.environ['HEAD_SHA']}/{path}#L{number}"
+                print(f"[{Path(path).name}:{number}]({link})|`{word}`|`{correction}`", file=table)
             print(file=table)
     report("count", len(kept))
 
