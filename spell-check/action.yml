@@ -18,11 +18,11 @@ inputs:
     required: false
     default: "low"
   prompt-file:
-    description: "Prompt to use instead of the one this action ships with"
+    description: "Prompt to use instead of the one included with this action"
     required: false
     default: ""
   max-added-lines:
-    description: "Leave a file alone when a pull request adds more lines than this to it"
+    description: "Leave a file alone when a pull request adds more than this many lines to it"
     required: false
     default: "4000"
   max-requests:
