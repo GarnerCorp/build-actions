@@ -69,7 +69,7 @@ def report(name, value):
             print(f"{name}={value}", file=record)
 
 
-def plan(work_dir):
+def plan(artifact_dir):
     base, head = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
     if not base or not head:
         sys.exit("This action reads the lines added by a pull request, "
@@ -92,8 +92,8 @@ def plan(work_dir):
 
     prompt = Path(os.environ.get("PROMPT_FILE") or Path(__file__).parent / "prompt.md").read_text(encoding="utf-8").strip()
     for number, part in enumerate(parts, 1):
-        Path(f"{work_dir}/part-{number}.txt").write_text(part, encoding="utf-8")
-        Path(f"{work_dir}/request-{number}.txt").write_text(
+        Path(f"{artifact_dir}/part-{number}.txt").write_text(part, encoding="utf-8")
+        Path(f"{artifact_dir}/request-{number}.txt").write_text(
             f"{prompt}\n\n<pull-request>\n{part}\n</pull-request>\n", encoding="utf-8")
 
     announce(f"reading {len(sent_lines(parts))} added line(s) from {len(kept)} file(s) "
@@ -120,14 +120,14 @@ def grounded(findings, sent):
     return kept
 
 
-def review(work_dir):
+def review(artifact_dir):
     parts, findings = [], []
-    for name in sorted(os.listdir(work_dir)):
+    for name in sorted(os.listdir(artifact_dir)):
         if name.startswith("part-"):
-            parts.append(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))
+            parts.append(Path(f"{artifact_dir}/{name}").read_text(encoding="utf-8"))
         elif name.startswith("findings-"):
             try:
-                findings += json.loads(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))["findings"]
+                findings += json.loads(Path(f"{artifact_dir}/{name}").read_text(encoding="utf-8"))["findings"]
             except (OSError, ValueError, KeyError, TypeError):
                 announce(f"could not read {name}; its findings are not reported")
     kept = grounded(findings, sent_lines(parts))
@@ -155,4 +155,4 @@ def review(work_dir):
 
 
 if __name__ == "__main__":
-    (plan if sys.argv[1] == "plan" else review)(os.environ["WORK_DIR"])
+    (plan if sys.argv[1] == "plan" else review)(os.environ["ARTIFACT_DIR"])
