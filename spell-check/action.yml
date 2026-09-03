@@ -94,7 +94,8 @@ runs:
           codex exec --skip-git-repo-check --sandbox read-only --cd "$WORK_DIR" \
             --model "$MODEL" --config "model_reasoning_effort=\"$EFFORT\"" \
             --output-schema "$GITHUB_ACTION_PATH/schema.json" \
-            --output-last-message "$WORK_DIR/findings-$number.json" - < "$WORK_DIR/request-$number.txt" &
+            --output-last-message "$WORK_DIR/findings-$number.json" - < "$WORK_DIR/request-$number.txt" \
+            > /dev/null &
         done
         for job in $(jobs -p); do
           wait "$job"
