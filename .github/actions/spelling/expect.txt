@@ -5,6 +5,7 @@ codesandbox
 containerregistry
 cred
 ENAMETOOLONG
+fullmatch
 garnercorp
 gpt
 graphql

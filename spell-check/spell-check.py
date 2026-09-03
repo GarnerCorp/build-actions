@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)")
+DICTIONARY = re.compile(r"\.github/actions/spelling[^/]*/(expect|allow)\.txt")
 
 
 def added_lines(base, head):
@@ -69,6 +70,18 @@ def report(name, value):
             print(f"{name}={value}", file=record)
 
 
+def declared_words(base):
+    listing = subprocess.run(["git", "ls-tree", "-r", "--name-only", base],
+                             capture_output=True, text=True, check=True).stdout
+    words = set()
+    for name in listing.split("\n"):
+        if DICTIONARY.fullmatch(name):
+            words.update(subprocess.run(["git", "show", f"{base}:{name}"],
+                                        capture_output=True, text=True,
+                                        check=True).stdout.lower().split())
+    return words
+
+
 def plan(work_dir):
     base, head = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
     if not base or not head:
@@ -96,6 +109,10 @@ def plan(work_dir):
         Path(f"{work_dir}/request-{number}.txt").write_text(
             f"{prompt}\n\n<pull-request>\n{part}\n</pull-request>\n", encoding="utf-8")
 
+    declared = declared_words(base)
+    Path(f"{work_dir}/dictionary.txt").write_text("\n".join(sorted(declared)),
+                                                  encoding="utf-8")
+
     announce(f"reading {len(sent_lines(parts))} added line(s) from {len(kept)} file(s) "
              f"in {len(parts)} request(s)")
     if left_out:
@@ -103,7 +120,7 @@ def plan(work_dir):
     report("requests", len(parts))
 
 
-def grounded(findings, sent):
+def grounded(findings, sent, declared):
     kept, seen = [], set()
     for finding in findings:
         if not isinstance(finding, dict):
@@ -114,6 +131,8 @@ def grounded(findings, sent):
             continue
         text = sent.get(where[:2])
         if text is None or word not in text or word == correction or where in seen:
+            continue
+        if word.lower() in declared:
             continue
         seen.add(where)
         kept.append((*where, correction, text.replace(word, correction)))
@@ -130,7 +149,8 @@ def review(work_dir):
                 findings += json.loads(Path(f"{work_dir}/{name}").read_text(encoding="utf-8"))["findings"]
             except (OSError, ValueError, KeyError, TypeError):
                 announce(f"could not read {name}; its findings are not reported")
-    kept = grounded(findings, sent_lines(parts))
+    declared = set(Path(f"{work_dir}/dictionary.txt").read_text(encoding="utf-8").split())
+    kept = grounded(findings, sent_lines(parts), declared)
 
     with open(os.environ["REVIEW"], "w", encoding="utf-8") as review_file:
         json.dump({"event": "COMMENT", "comments": [
