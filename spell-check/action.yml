@@ -62,7 +62,7 @@ runs:
       id: plan
       shell: bash
       env:
-        WORK_DIR: ${{ runner.temp }}/spell-check
+        ARTIFACT_DIR: ${{ runner.temp }}/spell-check
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         PROMPT_FILE: ${{ inputs.prompt-file }}
@@ -70,7 +70,7 @@ runs:
         MAX_MODEL_REQUESTS: ${{ inputs.max-model-requests }}
       run: |
         : Collect the lines to read
-        mkdir -p "$WORK_DIR"
+        mkdir -p "$ARTIFACT_DIR"
         "$GITHUB_ACTION_PATH/spell-check.py" plan
 
     - name: Set up the reader
@@ -84,17 +84,17 @@ runs:
       if: ${{ fromJSON(steps.plan.outputs.requests) >= 1 }}
       shell: bash
       env:
-        WORK_DIR: ${{ runner.temp }}/spell-check
+        ARTIFACT_DIR: ${{ runner.temp }}/spell-check
         REQUESTS: ${{ steps.plan.outputs.requests }}
         MODEL: ${{ inputs.model }}
         EFFORT: ${{ inputs.effort }}
       run: |
         : Read the added lines
         for number in $(seq "$REQUESTS"); do
-          codex exec --skip-git-repo-check --sandbox read-only --cd "$WORK_DIR" \
+          codex exec --skip-git-repo-check --sandbox read-only --cd "$GITHUB_WORKSPACE" \
             --model "$MODEL" --config "model_reasoning_effort=\"$EFFORT\"" \
             --output-schema "$GITHUB_ACTION_PATH/schema.json" \
-            --output-last-message "$WORK_DIR/findings-$number.json" - < "$WORK_DIR/request-$number.txt" \
+            --output-last-message "$ARTIFACT_DIR/findings-$number.json" - < "$ARTIFACT_DIR/request-$number.txt" \
             > /dev/null &
         done
         for job in $(jobs -p); do
@@ -105,7 +105,7 @@ runs:
       id: review
       shell: bash
       env:
-        WORK_DIR: ${{ runner.temp }}/spell-check
+        ARTIFACT_DIR: ${{ runner.temp }}/spell-check
         REVIEW: ${{ runner.temp }}/spell-check/review.json
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
