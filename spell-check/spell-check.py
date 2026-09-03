@@ -80,14 +80,15 @@ def plan(work_dir):
         sys.exit(f"{error.stderr.strip()} -- check out with `fetch-depth: 0`")
 
     per_file = int(os.environ.get("MAX_ADDED_LINES") or 4000)
-    left_out = [f"{path} ({len(lines)} added line{'' if len(lines) == 1 else 's'})"
+    left_out = [f"{path} ({len(lines)} "
+                f"added {'line' if len(lines) == 1 else 'lines'})"
                 for path, lines in added.items() if len(lines) > per_file]
     kept = {path: lines for path, lines in added.items() if len(lines) <= per_file}
 
     most = int(os.environ.get("MAX_MODEL_REQUESTS") or 10)
     parts = split(kept, 200000)
     if (over := len(parts) - most) > 0:
-        left_out.append(f"{over} request{'' if over == 1 else 's'} "
+        left_out.append(f"{over} {'request' if over == 1 else 'requests'} "
                         f"over the limit of {most}")
         parts = parts[:most]
 
@@ -98,9 +99,9 @@ def plan(work_dir):
             f"{prompt}\n\n<pull-request>\n{part}\n</pull-request>\n", encoding="utf-8")
 
     lines, files, requests = len(sent_lines(parts)), len(kept), len(parts)
-    announce(f"reading {lines} added line{'' if lines == 1 else 's'} "
-             f"from {files} file{'' if files == 1 else 's'} "
-             f"in {requests} request{'' if requests == 1 else 's'}")
+    announce(f"reading {lines} added {'line' if lines == 1 else 'lines'} "
+             f"from {files} {'file' if files == 1 else 'files'} "
+             f"in {requests} {'request' if requests == 1 else 'requests'}")
     if left_out:
         announce(f"skipped: {', '.join(left_out)}")
     report("requests", len(parts))
@@ -143,9 +144,10 @@ def review(work_dir):
             for path, number, word, correction, suggestion in kept]}, review_file)
 
     dropped = len(findings) - len(kept)
-    announce(f"reported {len(kept)} suggestion{'' if len(kept) == 1 else 's'}"
+    announce(f"reported {len(kept)} "
+             f"{'suggestion' if len(kept) == 1 else 'suggestions'}"
              + (f", dropped {dropped} unverifiable "
-                f"finding{'' if dropped == 1 else 's'}" if dropped else ""))
+                f"{'finding' if dropped == 1 else 'findings'}" if dropped else ""))
 
     if kept and (summary := os.environ.get("GITHUB_STEP_SUMMARY")):
         with open(summary, "a", encoding="utf-8") as table:
