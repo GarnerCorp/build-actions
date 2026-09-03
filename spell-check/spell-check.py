@@ -87,9 +87,8 @@ def plan(work_dir):
 
     most = int(os.environ.get("MAX_MODEL_REQUESTS") or 10)
     parts = split(kept, 200000)
-    if (over := len(parts) - most) > 0:
-        left_out.append(f"{over} {'request' if over == 1 else 'requests'} "
-                        f"over the limit of {most}")
+    if len(parts) > most:
+        left_out.append(f"{len(parts) - most} requests over the limit of {most}")
         parts = parts[:most]
 
     prompt = Path(os.environ.get("PROMPT_FILE") or Path(__file__).parent / "prompt.md").read_text(encoding="utf-8").strip()
