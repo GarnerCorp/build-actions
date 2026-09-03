@@ -128,7 +128,8 @@ runs:
       shell: bash
       env:
         COUNT: ${{ steps.review.outputs.count }}
+        SUGGESTIONS: ${{ steps.review.outputs.count == '1' && 'suggestion' || 'suggestions' }}
       run: |
         : Report the misspellings
-        echo "::error ::Spell check has $COUNT suggestion(s); see the job summary"
+        echo "::error ::Spell check has $COUNT $SUGGESTIONS; see the job summary"
         exit 1

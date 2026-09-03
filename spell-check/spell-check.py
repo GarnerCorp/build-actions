@@ -59,6 +59,10 @@ def sent_lines(parts):
     return sent
 
 
+def plural(number, noun):
+    return f"{number} {noun}" + ("" if number == 1 else "s")
+
+
 def announce(message):
     print(f"::notice ::Spell check {message}", file=sys.stderr)
 
@@ -80,14 +84,15 @@ def plan(work_dir):
         sys.exit(f"{error.stderr.strip()} -- check out with `fetch-depth: 0`")
 
     per_file = int(os.environ.get("MAX_ADDED_LINES") or 4000)
-    left_out = [f"{path} ({len(lines)} added lines)"
+    left_out = [f"{path} ({plural(len(lines), 'added line')})"
                 for path, lines in added.items() if len(lines) > per_file]
     kept = {path: lines for path, lines in added.items() if len(lines) <= per_file}
 
     most = int(os.environ.get("MAX_MODEL_REQUESTS") or 10)
     parts = split(kept, 200000)
     if len(parts) > most:
-        left_out.append(f"{len(parts) - most} request(s) over the limit of {most}")
+        left_out.append(
+            f"{plural(len(parts) - most, 'request')} over the limit of {most}")
         parts = parts[:most]
 
     prompt = Path(os.environ.get("PROMPT_FILE") or Path(__file__).parent / "prompt.md").read_text(encoding="utf-8").strip()
@@ -96,8 +101,8 @@ def plan(work_dir):
         Path(f"{work_dir}/request-{number}.txt").write_text(
             f"{prompt}\n\n<pull-request>\n{part}\n</pull-request>\n", encoding="utf-8")
 
-    announce(f"reading {len(sent_lines(parts))} added line(s) from {len(kept)} file(s) "
-             f"in {len(parts)} request(s)")
+    announce(f"reading {plural(len(sent_lines(parts)), 'added line')} "
+             f"from {plural(len(kept), 'file')} in {plural(len(parts), 'request')}")
     if left_out:
         announce(f"skipped: {', '.join(left_out)}")
     report("requests", len(parts))
@@ -140,8 +145,8 @@ def review(work_dir):
             for path, number, word, correction, suggestion in kept]}, review_file)
 
     dropped = len(findings) - len(kept)
-    announce(f"reported {len(kept)} suggestion(s)"
-             + (f", dropped {dropped} unverifiable finding(s)" if dropped else ""))
+    announce(f"reported {plural(len(kept), 'suggestion')}"
+             + (f", dropped {plural(dropped, 'unverifiable finding')}" if dropped else ""))
 
     if kept and (summary := os.environ.get("GITHUB_STEP_SUMMARY")):
         with open(summary, "a", encoding="utf-8") as table:
