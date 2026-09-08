@@ -115,6 +115,9 @@ def grounded(findings, sent):
         word, correction = where[2], finding.get("correction")
         if not word or not isinstance(word, str) or not isinstance(correction, str):
             continue
+        reason = finding.get("reason")
+        if not isinstance(reason, str) or not reason.strip():
+            continue
         text = sent.get(where[:2])
         if text is None or word not in text or word == correction or where in seen:
             continue

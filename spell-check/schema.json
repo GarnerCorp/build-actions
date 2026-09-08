@@ -12,6 +12,7 @@
           "path",
           "line",
           "line_text",
+          "reason",
           "misspelling",
           "correction"
         ],
@@ -24,6 +25,10 @@
           },
           "line_text": {
             "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Briefly explain why this word is a spelling error rather than an intentional project spelling."
           },
           "misspelling": {
             "type": "string"
