@@ -122,7 +122,7 @@ def grounded(findings, sent):
         if text is None or word not in text or word == correction or where in seen:
             continue
         seen.add(where)
-        kept.append((*where, correction, text.replace(word, correction)))
+        kept.append((*where, correction, reason.strip(), text.replace(word, correction)))
     return kept
 
 
@@ -143,7 +143,7 @@ def review(artifact_dir):
             {"path": path, "line": number, "side": "RIGHT",
              "body": f"`{word}` \N{RIGHTWARDS ARROW} `{correction}`"
                      f"\n\n```suggestion\n{suggestion}\n```"}
-            for path, number, word, correction, suggestion in kept]}, review_file)
+            for path, number, word, correction, _, suggestion in kept]}, review_file)
 
     dropped = len(findings) - len(kept)
     announce(f"reported {len(kept)} "
@@ -153,11 +153,12 @@ def review(artifact_dir):
 
     if kept and (summary := os.environ.get("GITHUB_STEP_SUMMARY")):
         with open(summary, "a", encoding="utf-8") as table:
-            print("## Spelling\n\nFile|Misspelling|Correction\n-|-|-", file=table)
+            print("## Spelling\n\nFile|Misspelling|Correction|Reason\n-|-|-|-", file=table)
             repository = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
-            for path, number, word, correction, _ in kept:
+            for path, number, word, correction, reason, _ in kept:
                 link = f"{repository}/blame/{os.environ['HEAD_SHA']}/{path}#L{number}"
-                print(f"[{Path(path).name}:{number}]({link})|`{word}`|`{correction}`", file=table)
+                cell = " ".join(reason.split()).replace("|", "\\|")
+                print(f"[{Path(path).name}:{number}]({link})|`{word}`|`{correction}`|{cell}", file=table)
             print(file=table)
     report("count", len(kept))
 
