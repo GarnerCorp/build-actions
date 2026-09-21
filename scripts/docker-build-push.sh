@@ -64,7 +64,14 @@ if [ -n "$BUILD_ARGS" ]; then
   BUILD_ARGS="$(echo $BUILD_ARGS | tr ',' ' ' | xargs -n 1 echo --build-arg)"
 fi
 
-echo $BUILD_ARGS | xargs docker buildx build $PLATFORM_ARGS $BUILD_CONTEXT -t "$PUSH_CONTEXT" -f $BUILD_DIRECTORY/$DOCKERFILE --push
+BUILD_SECRET_ARGS=()
+while IFS= read -r build_secret; do
+  if [ -n "$build_secret" ]; then
+    BUILD_SECRET_ARGS+=(--secret "$build_secret")
+  fi
+done <<< "${BUILD_SECRETS:-}"
+
+echo $BUILD_ARGS | xargs docker buildx build "${BUILD_SECRET_ARGS[@]}" $PLATFORM_ARGS $BUILD_CONTEXT -t "$PUSH_CONTEXT" -f $BUILD_DIRECTORY/$DOCKERFILE --push
 DIGEST=$(docker inspect --format='{{ index .RepoDigests 0 }}' "$PUSH_CONTEXT" || true)
 
 (

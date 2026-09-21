@@ -49,6 +49,9 @@ inputs:
   build-args:
     description: "Build arguments to pass as --build-arg flags to docker build (comma delimited)"
     required: false
+  build-secrets:
+    description: "Docker build secrets, one id=...,env=... or id=...,src=... per line"
+    required: false
 outputs:
   digest:
     description: "Generated image digest"
@@ -98,6 +101,7 @@ runs:
         DOCKERFILE: ${{ inputs.dockerfile }}
         BUILD_CONTEXT: ${{ inputs.build-context || inputs.working-directory }}
         BUILD_ARGS: ${{ inputs.build-args }}
+        BUILD_SECRETS: ${{ inputs.build-secrets }}
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
 
