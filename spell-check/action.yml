@@ -12,7 +12,7 @@ inputs:
   model:
     description: "Model to review with"
     required: false
-    default: "gpt-5.6-luna"
+    default: "gpt-6-luna"
   effort:
     description: "Reasoning effort"
     required: false
