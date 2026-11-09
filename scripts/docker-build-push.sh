@@ -42,22 +42,34 @@ case "$GITHUB_REF_NAME" in
 esac
 
 PUSH_CONTEXT=${REPOSITORY}/${IMAGE}:${RC:-${TAG}${BRANCH}}
+BUILD_IMAGE="$PUSH_CONTEXT"
+
+if [ -n "${CRANE_REGISTRY:-}" ]; then
+  BUILD_IMAGE="$CRANE_REGISTRY/${PUSH_CONTEXT#*/}"
+fi
 
 if [ -n "$PLATFORMS" ]; then
   PLATFORM_ARGS="--platform $PLATFORMS"
+fi
 
-  if [[ "$PLATFORMS" == *,* ]]; then
-    docker context create multiarch 2> /dev/null || true
+if [[ "$PLATFORMS" == *,* ]] || [ -n "${CRANE_REGISTRY:-}" ]; then
+  docker context create multiarch 2> /dev/null || true
 
-    if [ "$(uname)" = "Linux" ]; then
-      docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-    fi
-
-    echo ::group::Use buildx-multiarch
-    docker buildx use buildx-multiarch ||
-      docker buildx create --driver docker-container --use multiarch --name buildx-multiarch
-    echo ::end"group"::
+  if [[ "$PLATFORMS" == *,* ]] && [ "$(uname)" = "Linux" ]; then
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   fi
+
+  builder_name="buildx-multiarch"
+  builder_options=()
+  if [ -n "${CRANE_REGISTRY:-}" ]; then
+    builder_name="buildx-multiarch-registry"
+    builder_options+=(--driver-opt network=host)
+  fi
+
+  echo "::group::Use $builder_name"
+  docker buildx use "$builder_name" ||
+    docker buildx create --driver docker-container "${builder_options[@]}" --use multiarch --name "$builder_name"
+  echo ::end"group"::
 fi
 
 if [ -n "$BUILD_ARGS" ]; then
@@ -71,10 +83,11 @@ while IFS= read -r build_secret; do
   fi
 done <<< "${BUILD_SECRETS:-}"
 
-echo $BUILD_ARGS | xargs docker buildx build "${BUILD_SECRET_ARGS[@]}" $PLATFORM_ARGS $BUILD_CONTEXT -t "$PUSH_CONTEXT" -f $BUILD_DIRECTORY/$DOCKERFILE --push
-DIGEST=$(docker inspect --format='{{ index .RepoDigests 0 }}' "$PUSH_CONTEXT" || true)
+echo $BUILD_ARGS | xargs docker buildx build "${BUILD_SECRET_ARGS[@]}" $PLATFORM_ARGS $BUILD_CONTEXT -t "$BUILD_IMAGE" -f $BUILD_DIRECTORY/$DOCKERFILE --push
+DIGEST=$(docker inspect --format='{{ index .RepoDigests 0 }}' "$BUILD_IMAGE" || true)
 
 (
   echo "image=$PUSH_CONTEXT"
+  echo "source=$BUILD_IMAGE"
   echo "digest=${DIGEST#*@}"
 ) >> $GITHUB_OUTPUT

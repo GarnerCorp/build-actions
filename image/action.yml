@@ -88,6 +88,12 @@ runs:
         : Configure docker gcloud credential helpers if they are not already configured
         "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
+    - name: Install crane
+      if: ${{ inputs.additional-image-tags || env.CRANE_REGISTRY }}
+      uses: $/install-crane
+      with:
+        use-registry: "0"
+
     - name: Build and Push Image
       id: build-and-push-image
       shell: bash
@@ -105,33 +111,31 @@ runs:
       run: |
         "$GITHUB_ACTION_PATH/../scripts/docker-build-push.sh" -r "$REPOSITORY" -i "$IMAGE" -t "$TAG" -e "$RC" -p "$PLATFORMS" -d "$WORKING_DIRECTORY" -f "$DOCKERFILE" -c "$BUILD_CONTEXT"
 
-    - name: Install crane
-      if: ${{ inputs.additional-image-tags }}
-      uses: $/install-crane
-
-    - name: Copy images
-      if: ${{ inputs.additional-image-tags }}
-      shell: bash
-      env:
-        published: ${{ steps.build-and-push-image.outputs.image }}
-        images: ${{ inputs.additional-image-tags }}
-      run: |
-        : Copy images
-        for image in $images; do
-          $GITHUB_WORKSPACE/../crane copy "$published" "$image"
-        done
-
     - name: Summary
       shell: bash
       env:
         published: ${{ steps.build-and-push-image.outputs.image }}
-        images: ${{ inputs.additional-image-tags }}
+        source: ${{ steps.build-and-push-image.outputs.source }}
       run: |
         : Summary
         (
           echo '# Published images'
           echo
-          for image in $published $images; do
-            echo "* [$image](https://$image)"
-          done
+          if [ "$source" = "$published" ]; then
+            echo "* [$published](https://$published)"
+          fi
         ) >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Copy images
+      if: ${{ inputs.additional-image-tags || env.CRANE_REGISTRY }}
+      shell: bash
+      env:
+        source: ${{ steps.build-and-push-image.outputs.source }}
+        published: ${{ steps.build-and-push-image.outputs.image }}
+        destinations: ${{ inputs.additional-image-tags }}
+      run: |
+        : Copy images
+        if [ "$source" != "$published" ]; then
+          destinations="$published $destinations"
+        fi
+        "$GITHUB_ACTION_PATH/../copy-image/copy-images.sh" ""

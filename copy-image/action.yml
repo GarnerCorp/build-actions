@@ -42,11 +42,4 @@ runs:
         destinations: ${{ inputs.destinations }}
       run: |
         : Copy images
-        (
-          echo '# Copied images'
-          echo
-        ) >> "$GITHUB_STEP_SUMMARY"
-        for destination in $destinations; do
-          $GITHUB_WORKSPACE/../crane copy "$source" "$destination"
-          echo "* [$destination](https://$destination)" >> "$GITHUB_STEP_SUMMARY"
-        done
+        "$GITHUB_ACTION_PATH/copy-images.sh" "Copied images"

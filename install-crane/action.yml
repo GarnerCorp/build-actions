@@ -4,6 +4,10 @@ author: "GarnerCorp"
 branding:
   icon: "archive"
   color: "green"
+inputs:
+  use-registry:
+    description: "Use a crane registry (0 to disable)"
+    default: "1"
 
 runs:
   using: "composite"
@@ -25,3 +29,25 @@ runs:
         repository: google/go-containerregistry
         file-re: ^crane
         destination: "${{ github.workspace }}/../crane"
+
+    - name: Check for registry
+      id: registry
+      if: ${{ inputs.use-registry == '1' }}
+      shell: bash
+      run: |
+        : Check for crane registry
+        if [ -z "${CRANE_REGISTRY:-}" ]; then
+          echo "CRANE_REGISTRY=localhost:5123" >> "$GITHUB_ENV"
+          echo "start=1" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Start local registry
+      if: ${{ steps.registry.outputs.start }}
+      shell: bash
+      run: |
+        : Start local registry
+        if ! curl --fail --silent --max-time 1 "http://$CRANE_REGISTRY/v2/" > /dev/null; then
+          nohup "$GITHUB_WORKSPACE/../crane" registry serve --address "$CRANE_REGISTRY" > "$RUNNER_TEMP/crane-registry.log" 2>&1 &
+          curl --fail --silent --show-error --max-time 1 --retry 10 --retry-connrefused --retry-delay 1 \
+            "http://$CRANE_REGISTRY/v2/" > /dev/null
+        fi

@@ -41,17 +41,17 @@ runs:
       shell: bash
       env:
         repositories: ${{ inputs.repositories }}
-        source: ${{ inputs.source-tag }}
+        source_tag: ${{ inputs.source-tag }}
         tags: ${{ inputs.new-tags }}
       run: |
         : Copy images
-        (
-          echo '# Tagged images'
-          echo
-        ) >> "$GITHUB_STEP_SUMMARY"
+        summary_label="Tagged images"
         for repository in $repositories; do
+          destinations=""
           for tag in $tags; do
-            $GITHUB_WORKSPACE/../crane copy "$repository:$source" "$repository:$tag"
-            echo "* [$repository:$tag](https://$repository:$tag)" >> "$GITHUB_STEP_SUMMARY"
+            destinations="$destinations $repository:$tag"
           done
+          source="$repository:$source_tag" destinations="$destinations" \
+            "$GITHUB_ACTION_PATH/../copy-image/copy-images.sh" "$summary_label"
+          summary_label=""
         done
