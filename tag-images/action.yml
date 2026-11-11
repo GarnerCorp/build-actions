@@ -25,15 +25,6 @@ runs:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
 
-    - name: Add google registries
-      shell: bash
-      env:
-        registries: >-
-          ${{ inputs.repositories }}
-      run: |
-        : Configure docker gcloud credential helpers if they are not already configured
-        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
-
     - name: Install crane
       uses: $/install-crane
 
