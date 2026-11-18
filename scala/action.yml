@@ -181,6 +181,7 @@ runs:
         path: ${{ inputs.working-directory }}/project/target
 
     - name: SBT Jobs Cache (r/w)
+      if: inputs.restore-only != 'true'
       uses: actions/cache@v6
       with:
         key: sbt-jobs-${{ inputs.working-directory }}-${{ github.sha }}
@@ -188,6 +189,7 @@ runs:
         path: ${{ inputs.working-directory }}/${{ inputs.cache-sbt-targets }}
 
     - name: SBT Jobs Cache (r/o)
+      if: inputs.restore-only == 'true'
       uses: actions/cache/restore@v6
       with:
         key: sbt-jobs-${{ inputs.working-directory }}-${{ github.sha }}
