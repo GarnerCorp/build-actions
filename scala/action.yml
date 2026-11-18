@@ -58,6 +58,9 @@ inputs:
   skip-checkout:
     description: "Use files from working directory instead of checking out"
     required: false
+  restore-only:
+    description: "Do not save cache"
+    required: false
 
 runs:
   using: 'composite'
@@ -123,8 +126,8 @@ runs:
         prometheus_agent=$(basename "$PROMETHEUS_URL")
         echo "prometheus_agent=$prometheus_agent" >> $GITHUB_OUTPUT
 
-    - name: Cache Prometheus Agent
-      if: inputs.prometheus-url
+    - name: Prometheus Agent Cache (r/w)
+      if: inputs.prometheus-url && inputs.restore-only != 'true'
       id: prometheus-agent-cache
       uses: actions/cache@v6
       with:
@@ -132,8 +135,17 @@ runs:
         restore-keys: prometheus-agent
         path: ${{ inputs.working-directory }}/${{ steps.find-prometheus-agent.outputs.prometheus_agent }}
 
+    - name: Prometheus Agent Cache (r/o)
+      if: inputs.prometheus-url && inputs.restore-only == 'true'
+      id: prometheus-agent-cache-ro
+      uses: actions/cache/restore@v6
+      with:
+        key: prometheus-agent-${{ steps.find-prometheus-agent.outputs.prometheus_agent }}
+        restore-keys: prometheus-agent
+        path: ${{ inputs.working-directory }}/${{ steps.find-prometheus-agent.outputs.prometheus_agent }}
+
     - name: Download jmx_prometheus_javaagent
-      if: inputs.prometheus-url && steps.prometheus-agent-cache.outputs.cache-hit != 'true'
+      if: inputs.prometheus-url && (steps.prometheus-agent-cache.outputs.cache-hit != 'true' && steps.prometheus-agent-cache-ro.outputs.cache-hit != 'true')
       env:
         PROMETHEUS_URL: ${{ inputs.prometheus-url }}
         MAVEN_USERNAME: ${{ inputs.maven-username }}
@@ -152,15 +164,31 @@ runs:
 
         curl -f -L -s $CREDENTIALS -O "$PROMETHEUS_URL"
 
-    - name: Cache SBT Project
+    - name: SBT Project Cache (r/w)
+      if: inputs.restore-only != 'true'
       uses: actions/cache@v6
       with:
         key: sbt-project-${{ inputs.working-directory }}-${{ github.sha }}
         restore-keys: sbt-project-${{ inputs.working-directory }}
         path: ${{ inputs.working-directory }}/project/target
 
-    - name: Cache SBT Jobs
+    - name: SBT Project Cache (r/o)
+      if: inputs.restore-only == 'true'
+      uses: actions/cache/restore@v6
+      with:
+        key: sbt-project-${{ inputs.working-directory }}-${{ github.sha }}
+        restore-keys: sbt-project-${{ inputs.working-directory }}
+        path: ${{ inputs.working-directory }}/project/target
+
+    - name: SBT Jobs Cache (r/w)
       uses: actions/cache@v6
+      with:
+        key: sbt-jobs-${{ inputs.working-directory }}-${{ github.sha }}
+        restore-keys: sbt-jobs-${{ inputs.working-directory }}
+        path: ${{ inputs.working-directory }}/${{ inputs.cache-sbt-targets }}
+
+    - name: SBT Jobs Cache (r/o)
+      uses: actions/cache/restore@v6
       with:
         key: sbt-jobs-${{ inputs.working-directory }}-${{ github.sha }}
         restore-keys: sbt-jobs-${{ inputs.working-directory }}
