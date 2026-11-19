@@ -112,6 +112,12 @@ runs:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
         cache: 'sbt'
+        cache-dependency-path: |
+          **/*.sbt
+          **/project/build.properties
+          **/project/**.scala
+          **/project/**.sbt
+          !**/version.sbt
 
     - name: Set up sbt
       uses: sbt/setup-sbt@v1
