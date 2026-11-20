@@ -9,12 +9,6 @@ inputs:
     description: "An image reference to be pulled by docker"
     required: true
     default: "busybox"
-  workload-identity-provider:
-    description: "The workload identity provider to use for pulling images (requires service-account)"
-    required: false
-  service-account:
-    description: "The service account to use for pulling images (requires workload-identity-provider)"
-    required: false
   command:
     description: "The command to run"
     required: false
@@ -29,39 +23,22 @@ runs:
   using: 'composite'
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.image || !inputs.workload-identity-provider != !inputs.service-account }}
+      if: ${{ !inputs.image }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
-        codependent: ${{ inputs.checkout == 'true' && '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ], [ "checkout", "workload-identity-provider" ] ]' || '[ [ "workload-identity-provider", "service-account" ], [ "checkout", "service-account" ] ]' }}
 
     - name: Checkout
       id: checkout
       if: ${{ inputs.checkout == 'true' }}
       uses: actions/checkout@v7
 
-    - name: Set up google docker credentials
-      id: google-credentials
-      if: ${{ inputs.workload-identity-provider && inputs.service-account }}
-      uses: $/configure-google-docker
-      env:
-        IMAGE: ${{ inputs.image }}
-        WORKLOAD_IDENTITY_PROVIDER: ${{ inputs.workload-identity-provider }}
-        SERVICE_ACCOUNT: ${{ inputs.service-account }}
-      with:
-        images: ${{ env.IMAGE }}
-        workload-identity-provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
-        service-account: ${{ env.SERVICE_ACCOUNT }}
-
     - name: Run command
       id: run-command
       env:
         IMAGE: ${{ inputs.image }}
         CMD: ${{ inputs.command }}
-        CHECKOUT_OVERWRITE: ${{ steps.checkout.conclusion == 'success' && steps.google-credentials.conclusion == 'skipped' && env.GOOGLE_GHA_CREDS_PATH && '1' || '' }}
-        NO_WIP: ${{ inputs.workload_identity_provider == '' && '1' || '' }}
-        NO_SA: ${{ inputs.service-account == '' && '1' || '' }}
         SHOW_OUTPUT_ON_SUCCESS: ${{ inputs.show-output-on-success }}
       shell: bash
       run: |
@@ -70,19 +47,7 @@ runs:
           :
         else
            exit_code="$?"
-           if [ -n "$CHECKOUT_OVERWRITE" ]; then
-             (
-                echo "# docker pull '$IMAGE' failed"
-                echo '`inputs.checkout` was set, but a step before this action used google-github-actions/auth'
-                echo 'you probably do not want to use `inputs.checkout`, or '
-                echo "you need to use ${NO_WIP:+\`inputs.workload-identity-provider\` ${NO_SA:+and }}${NO_SA:+\`inputs.service-account\`}"
-             ) >> "$GITHUB_STEP_SUMMARY"
-           else
-             (
-                echo "# docker pull '$IMAGE' failed"
-                echo "sorry, that's all we know"
-             ) >> "$GITHUB_STEP_SUMMARY"
-           fi
+           echo "# docker pull '$IMAGE' failed; check the workflow's registry login" >> "$GITHUB_STEP_SUMMARY"
            exit $exit_code
         fi
 

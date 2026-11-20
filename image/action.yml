@@ -23,14 +23,6 @@ inputs:
     description: "Name of Dockerfile"
     default: "Dockerfile"
     required: false
-  service-account:
-    description: "Service Account for Google Cloud Auth"
-    default: ""
-    required: false
-  workload-identity-provider:
-    description: "Workload Identity Provider for Google Cloud Auth"
-    default: ""
-    required: false
   image-name:
     description: "Name of OCI image"
     required: false
@@ -64,29 +56,11 @@ runs:
   using: "composite"
   steps:
     - name: Validate inputs
-      if: ${{ !inputs.container-project || !inputs.service-account != !inputs.workload-identity-provider }}
+      if: ${{ !inputs.container-project }}
       uses: $/report-missing-inputs
       with:
         inputs: ${{ toJSON(inputs) }}
         action-path: ${{ github.action_path }}
-        codependent: '[ [ "service-account", "workload-identity-provider" ] ]'
-
-    - name: "Google Auth"
-      uses: google-github-actions/auth@v3
-      if: ${{ inputs.service-account && inputs.workload-identity-provider && ! env.ACT }}
-      with:
-        service_account: "${{ inputs.service-account }}"
-        workload_identity_provider: "${{ inputs.workload-identity-provider }}"
-
-    - name: Add google registries
-      shell: bash
-      env:
-        registries: >-
-          ${{ inputs.container-registry && inputs.container-project && format('{0}/{1}', inputs.container-registry, inputs.container-project) || ''}}
-          ${{ inputs.additional-image-tags }}
-      run: |
-        : Configure docker gcloud credential helpers if they are not already configured
-        "$GITHUB_ACTION_PATH/../scripts/gcloud-auth-configure-docker.sh"
 
     - name: Build and Push Image
       id: build-and-push-image
